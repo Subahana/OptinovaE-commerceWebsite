@@ -1,0 +1,73 @@
+{% extends "admin_page/main.html" %}
+{% load static %}
+{% block title %}Edit Brand{% endblock %}
+
+{% block content %}
+<main class="main-wrap">
+    <section class="content-main">
+        <!-- Flash Messages for Form Validation or Success -->
+        {% if messages %}
+        <div class="alert">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Header with Title -->
+        <div class="content-header mb-4">
+            <h2 class="content-title card-title">Edit Brand Details</h2>
+            <p class="text-muted">Update the details of the brand below and click Save Changes.</p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="card shadow-lg border-0 rounded">
+            <div class="card-header text-white py-3">
+                <h4 class="card-title mb-0">Brand Information</h4>
+            </div>
+            <div class="card-body p-5">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <!-- Brand Name Field -->
+                    <div class="form-group mb-4">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">Brand Name</label>
+                        {{ form.name }}
+                        <small class="form-text text-muted">Enter the brand name (max 50 characters).</small>
+                        {% if form.name.errors %}
+                            <div class="text-danger mt-2">
+                                <i class="bi bi-exclamation-circle-fill"></i> {{ form.name.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Brand Description Field -->
+                    <div class="form-group mb-4">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">Brand Description</label>
+                        {{ form.description }}
+                        <small class="form-text text-muted">Provide a brief description of the brand.</small>
+                        {% if form.description.errors %}
+                            <div class="text-danger mt-2">
+                                <i class="bi bi-exclamation-circle-fill"></i> {{ form.description.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Submit and Cancel Buttons -->
+                    <div class="form-group mt-5">
+                        <button type="submit" class="btn btn-primary px-5 py-2">
+                            <i class="bi bi-check-circle"></i> Save Changes
+                        </button>
+                        <a href="{% url 'brand_list' %}" class="btn btn-secondary px-5 py-2 ms-3">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock content %}

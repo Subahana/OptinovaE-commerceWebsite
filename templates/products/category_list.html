@@ -1,0 +1,91 @@
+{% extends "admin_page/main.html" %}
+{% load static %}
+{% block title %}Category List{% endblock %}
+
+{% block content %}
+    <main class="main-wrap">
+        <section class="content-main">
+            {% if messages %}
+            <div class="alert">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="content-header">
+                <h2 class="content-title card-title">Category Management</h2>
+                <div>
+                    <input type="text" placeholder="Search Categories" class="form-control bg-white">
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <a href="{% url 'add_category' %}" class="btn btn-primary">Add New Category</a>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if categories %}
+                                    {% for category in categories %}
+                                        <tr>
+                                            <td>{{ category.id }}</td>
+                                            <td><b>{{ category.name }}</b></td>
+                                            <td>
+                                                {% if category.is_active %}
+                                                    <span class="badge rounded-pill alert-success">Active</span>
+                                                {% else %}
+                                                    <span class="badge rounded-pill alert-danger">Inactive</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-end">
+                                                <div class="dropdown">
+                                                    <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm">
+                                                        <i class="material-icons md-more_horiz"></i>
+                                                    </a>
+                                                    <div class="dropdown-menu">
+                                                        <a class="dropdown-item" href="{% url 'edit_category' category.id %}">Edit</a>
+                                                        {% if category.is_active %}
+                                                            <form action="{% url 'soft_delete_category' category.id %}" method="post" class="dropdown-item p-0 m-0">
+                                                                {% csrf_token %}
+                                                                <button type="submit" class="btn w-100 text-start">Deactivate</button>
+                                                            </form>
+                                                        {% else %}
+                                                            <form action="{% url 'activate_category' category.id %}" method="post" class="dropdown-item p-0 m-0">
+                                                                {% csrf_token %}
+                                                                <button type="submit" class="btn w-100 text-start">Activate</button>
+                                                            </form>
+                                                        {% endif %}
+                                                        <form action="{% url 'permanent_delete_category' category.id %}" method="post" class="dropdown-item p-0 m-0">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn w-100 text-start">Delete</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </td>                                            
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">No categories available.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock content %}

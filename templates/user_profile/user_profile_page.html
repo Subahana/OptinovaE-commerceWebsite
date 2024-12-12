@@ -1,0 +1,167 @@
+{% extends "user_home/main.html" %}
+{% load static %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="profile-info">
+            <h2 class="profile-name">{{ user.first_name }} {{ user.last_name }}</h2>
+            <p class="profile-email">{{ user.email }}</p>
+        </div>
+    </div>
+
+    <!-- Profile Information Section -->
+    <div class="profile-section">
+        <div class="section-heading">
+            <h3>Profile Information</h3>
+            <a href="{% url 'edit_profile' %}" class="btn btn-outline-primary">Edit Profile</a>
+        </div>
+        <div class="profile-info">
+            <div class="profile-info-group">
+                <i class="fas fa-user profile-icon"></i>
+                <div>
+                    <label>Name:</label>
+                    <p>{{ user.first_name }} {{ user.last_name }}</p>
+                </div>
+            </div>
+            <div class="profile-info-group">
+                <i class="fas fa-user profile-icon"></i>
+                <div>
+                    <label>Username:</label>
+                    <p>{{ user.username }}</p>
+                </div>
+            </div>
+            <div class="profile-info-group">
+                <i class="fas fa-envelope profile-icon"></i>
+                <div>
+                    <label>Email:</label>
+                    <p>{{ user.email }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wallet Section -->
+    <div class="wallet-section">
+        <div class="section-heading">
+            <h3>Wallet</h3>
+        </div>
+        <a href="{% url 'wallet' %}" class="btn btn-outline-primary">Go to Wallet</a>
+    </div>
+
+    <!-- Address Section -->
+    <div class="address-section">
+        <div class="section-heading">
+            <h3>My Addresses</h3>
+            <a href="{% url 'add_address' %}" class="btn btn-outline-primary">Add New Address</a>
+        </div>
+        <div class="address-list">
+            {% if addresses %}
+                <div class="row">
+                    {% for address in addresses %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <p>
+                                        <strong>{{ address.street }}</strong><br>
+                                        {{ address.city }}, {{ address.state }}<br>
+                                        {{ address.country }}<br>
+                                        <span class="text-muted">Postal Code: {{ address.pin_code }}</span>
+                                    </p>
+                                    <div class="address-actions">
+                                        <a href="{% url 'edit_address' address.id %}" class="btn btn-outline-primary me-2">Edit</a>
+                                        <form action="{% url 'delete_address' address.id %}" method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to delete this address?');">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-warning">You have no saved addresses.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Orders Section -->
+    <div class="orders-section">
+        <div class="section-heading">
+            <h3>My Orders</h3>
+        </div>
+        {% if orders %}
+            <a href="{% url 'my_orders' %}" class="btn btn-outline-primary">View Order Details</a>
+        {% else %}
+            <div class="alert alert-warning">You have no orders.</div>
+        {% endif %}
+    </div>
+
+    <!-- Change Password Section -->
+    <div class="change-password-section">
+        <div class="section-heading">
+            <h3>Change Password</h3>
+        </div>
+        <a href="{% url 'change_password' %}" class="btn btn-outline-primary">Change Password</a>
+    </div>
+</div>
+
+<style>
+    .profile-container {
+        max-width: 1000px;
+        margin: auto;
+        padding: 40px;
+        background-color: #eaf2f8;
+        border-radius: 15px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-header, .profile-section, .wallet-section, .address-section, .orders-section, .change-password-section {
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.05);
+        margin-bottom: 30px;
+    }
+
+    .section-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 22px;
+        color: #1e2a38;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #66b3ff;
+        padding-bottom: 10px;
+    }
+
+    .btn-outline-primary {
+        border: 2px solid #66b3ff;
+        color: #66b3ff;
+        transition: 0.3s;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #66b3ff;
+        color: #fff;
+    }
+
+    .profile-info-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .profile-icon {
+        font-size: 20px;
+        color: #66b3ff;
+        margin-right: 15px;
+    }
+
+    .card {
+        border-radius: 10px;
+    }
+</style>
+{% endblock %}

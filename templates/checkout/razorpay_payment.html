@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Razorpay Payment</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+</head>
+<body>
+    <h1>Complete Your Payment</h1>
+    <button id="rzp-button1">Pay with Razorpay</button>
+    
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        axios.defaults.headers.common['X-CSRFToken'] = csrfToken;
+        const OrderId = "{{ order.id }}";
+
+        var options = {
+            "key": "{{ razorpay_key }}", // Razorpay Key ID
+            "amount": "{{ total_price }}", // Amount in paise
+            "currency": "INR",
+            "name": "{{ user_name }}",
+            "description": "Order Payment",
+            "order_id": "{{ razorpay_order_id }}", // Razorpay order ID
+            "callback_url": "http://localhost:8000/order_management/verify_razorpay_payment/" + OrderId + "/",
+            "prefill": {
+                "name": "{{ user_name }}",
+                "email": "{{ user_email }}",
+            },
+            "theme": {
+                "color": "#0099ff" // Customize the color
+            }
+        };
+
+        var rzp1 = new Razorpay(options);
+
+        document.getElementById('rzp-button1').onclick = function (e) {
+            rzp1.open();
+            e.preventDefault();
+        };
+
+        rzp1.on('payment.success', function (response) {
+            console.log("Payment Success Response:", response); // Log the response
+
+            // Log the data being sent to the server
+            const paymentData = {
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature
+            };
+            console.log("Sending payment data to server:", paymentData);
+
+            axios.post('/order_management/verify_razorpay_payment/' + OrderId + '/', paymentData, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                }
+            }).then((res) => {
+                console.log("Payment Verified:", res.data);
+                window.location.href = `/order_management/order/success/razorpay/${orderId}/`;
+            }).catch((err) => {
+                console.error("Payment Verification Failed:", err);
+                alert("Payment verification failed. Please try again.");
+            });
+        });
+    </script>
+</body>
+</html>

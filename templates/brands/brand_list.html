@@ -1,0 +1,93 @@
+{% extends "admin_page/main.html" %}
+{% load static %}
+{% block title %}Brand List{% endblock %}
+
+{% block content %}
+<main class="main-wrap">
+    <section class="content-main">
+        {% if messages %}
+        <div class="alert">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Page Header -->
+        <div class="content-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="content-title card-title">Brand Management</h2>
+        </div>
+
+        <!-- Table Section -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if brands %}
+                                {% for brand in brands %}
+                                    <tr class="align-middle">
+                                        <td>{{ brand.id }}</td>
+                                        <td><strong>{{ brand.name }}</strong></td>
+                                        <td>
+                                            {% if brand.is_active %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="dropdown">
+                                                <a href="#" data-bs-toggle="dropdown" class="btn btn-light btn-icon">
+                                                    <i class="material-icons md-more_horiz"></i>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    <a class="dropdown-item" href="{% url 'brand_edit' brand.pk %}">
+                                                        <i class="material-icons md-edit"></i> Edit
+                                                    </a>
+                                                    {% if brand.is_active %}
+                                                        <form action="{% url 'brand_deactivate' brand.pk %}" method="post" class="dropdown-item p-0">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn w-100 text-start">
+                                                                <i class="material-icons md-toggle_off"></i> Deactivate
+                                                            </button>
+                                                        </form>
+                                                    {% else %}
+                                                        <form action="{% url 'brand_activate' brand.pk %}" method="post" class="dropdown-item p-0">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn w-100 text-start">
+                                                                <i class="material-icons md-toggle_on"></i> Activate
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center">No brands available.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                    <div class="d-flex">
+                        <a href="{% url 'brand_create' %}" class="btn btn-primary">
+                            <i class="material-icons md-add_circle_outline me-1"></i> Add New Brand
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock content %}

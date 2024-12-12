@@ -1,0 +1,164 @@
+{% extends "admin_page/main.html" %}
+{% block title %}Manage Images for Variant: {{ variant.color }}{% endblock %}
+
+{% block content %}
+<main class="main-wrap">
+    <section class="content-main">
+        <div class="content-header">
+            <h2 class="content-title">Manage Images for Variant: {{ variant.color }}</h2>
+        </div>
+
+        <!-- Display existing images if any -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5>Existing Images</h5>
+                {% if variant.images.all %}
+                    <div class="row">
+                        {% for image in variant.images.all %}
+                            <div class="col-md-3 mb-3">
+                                <img src="{{ image.url }}" alt="Image {{ forloop.counter }}" class="img-fluid mb-2">
+                                <div>
+                                    <!-- Edit Image button -->
+                                    <button type="button" class="btn btn-primary" onclick="editImage({{ image.id }})">Edit</button>
+                                    <!-- Delete Image form -->
+                                    <form action="{% url 'delete_image' image.id %}" method="POST" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>No images uploaded yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Form for adding new images -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5>Upload New Images</h5>
+
+                <!-- Image 1 -->
+                <div class="mb-3">
+                    <label for="imageInput1">Upload Image 1</label>
+                    <input type="file" id="imageInput1" accept="image/*" class="form-control">
+                    <img id="imagePreview1" alt="Image 1 Preview" style="max-width: 300px; margin-top: 20px; display: none;">
+                    <button type="button" id="cropImageButton1" style="margin-top: 10px; display: none;">Crop Image 1</button>
+                    <input type="hidden" id="croppedImageData1" name="croppedImageData1">
+                </div>
+
+                <!-- Image 2 -->
+                <div class="mb-3">
+                    <label for="imageInput2">Upload Image 2</label>
+                    <input type="file" id="imageInput2" accept="image/*" class="form-control">
+                    <img id="imagePreview2" alt="Image 2 Preview" style="max-width: 300px; margin-top: 20px; display: none;">
+                    <button type="button" id="cropImageButton2" style="margin-top: 10px; display: none;">Crop Image 2</button>
+                    <input type="hidden" id="croppedImageData2" name="croppedImageData2">
+                </div>
+
+                <!-- Image 3 -->
+                <div class="mb-3">
+                    <label for="imageInput3">Upload Image 3</label>
+                    <input type="file" id="imageInput3" accept="image/*" class="form-control">
+                    <img id="imagePreview3" alt="Image 3 Preview" style="max-width: 300px; margin-top: 20px; display: none;">
+                    <button type="button" id="cropImageButton3" style="margin-top: 10px; display: none;">Crop Image 3</button>
+                    <input type="hidden" id="croppedImageData3" name="croppedImageData3">
+                </div>
+
+                <!-- Image 4 -->
+                <div class="mb-3">
+                    <label for="imageInput4">Upload Image 4</label>
+                    <input type="file" id="imageInput4" accept="image/*" class="form-control">
+                    <img id="imagePreview4" alt="Image 4 Preview" style="max-width: 300px; margin-top: 20px; display: none;">
+                    <button type="button" id="cropImageButton4" style="margin-top: 10px; display: none;">Crop Image 4</button>
+                    <input type="hidden" id="croppedImageData4" name="croppedImageData4">
+                </div>
+
+                <form id="uploadForm" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" id="submitButton" style="margin-top: 10px;" disabled>Upload Cropped Images</button>
+                </form>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Include Cropper.js CSS and JS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+    var csrfToken = '{{ csrf_token }}';
+    let cropper1, cropper2, cropper3, cropper4; // Cropper instances
+
+    function setupImageHandling(imageInputId, imagePreviewId, cropButtonId, croppedDataId, cropperRef) {
+        const imageInput = document.getElementById(imageInputId);
+        const imagePreview = document.getElementById(imagePreviewId);
+        const cropButton = document.getElementById(cropButtonId);
+        const croppedImageData = document.getElementById(croppedDataId);
+
+        imageInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    cropButton.style.display = 'block';
+                    if (cropperRef) cropperRef.destroy(); // Destroy previous cropper instance
+                    cropperRef = new Cropper(imagePreview, { aspectRatio: 1, viewMode: 1 });
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        cropButton.addEventListener('click', function() {
+            if (cropperRef) {
+                const canvas = cropperRef.getCroppedCanvas();
+                const dataURL = canvas.toDataURL('image/png');
+                croppedImageData.value = dataURL;
+                document.getElementById('submitButton').disabled = false; // Enable submit button
+                alert(`${imagePreviewId} cropped and ready to upload.`);
+            }
+        });
+    }
+
+    setupImageHandling('imageInput1', 'imagePreview1', 'cropImageButton1', 'croppedImageData1', cropper1);
+    setupImageHandling('imageInput2', 'imagePreview2', 'cropImageButton2', 'croppedImageData2', cropper2);
+    setupImageHandling('imageInput3', 'imagePreview3', 'cropImageButton3', 'croppedImageData3', cropper3);
+    setupImageHandling('imageInput4', 'imagePreview4', 'cropImageButton4', 'croppedImageData4', cropper4);
+
+    // Handle Form Submission
+    const uploadForm = document.getElementById('uploadForm');
+    uploadForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const formData = new FormData();
+        formData.append('croppedImageData1', document.getElementById('croppedImageData1').value);
+        formData.append('croppedImageData2', document.getElementById('croppedImageData2').value);
+        formData.append('croppedImageData3', document.getElementById('croppedImageData3').value);
+        formData.append('croppedImageData4', document.getElementById('croppedImageData4').value);
+        formData.append('csrfmiddlewaretoken', csrfToken);
+
+        axios.post("{% url 'add_images' variant.id %}", formData, {
+            headers: { 'X-CSRFToken': csrfToken }
+        })
+        .then(function(response) {
+            console.log('Images uploaded successfully:', response.data);
+            window.location.href = "{% url 'product_detail' variant.product.id variant.id %}";
+        })
+        .catch(function(error) {
+            console.error('Error uploading images:', error);
+            alert('Error uploading images. Please try again.');
+        });
+    });
+
+    // Placeholder function to handle image editing
+    function editImage(imageId) {
+        alert('Edit image functionality for image ID ' + imageId + ' is not implemented yet.');
+        // Redirect to an edit image view or open an image editing modal here
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "admin_page/main.html" %}
+{% load static %}
+{% block content %}
+<main class="main-wrap">
+    <section class="content-main">
+        
+        <!-- Display messages -->
+        {% if messages %}
+        <div class="alert">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <h2 class="mb-4">Update Category Offer</h2>
+        
+        <!-- Category Offer Update Form -->
+        <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+            
+            <!-- Category Field -->
+            <div class="mb-3">
+                {{ form.category.label_tag }}
+                {{ form.category }}
+                <div class="form-text">Select the category for this offer.</div>
+            </div>
+            
+            <!-- Discount Percent Field -->
+            <div class="mb-3">
+                {{ form.discount_percent.label_tag }}
+                {{ form.discount_percent }}
+                <div class="form-text">Enter discount percentage (0-100).</div>
+            </div>
+            
+            <!-- Start Date Field with Date Picker -->
+            <div class="mb-3">
+                {{ form.start_date.label_tag }}
+                <input type="date" name="start_date" value="{{ form.start_date.value }}" class="form-control" placeholder="Select start date" required>
+                <div class="form-text">Specify the start date for the offer.</div>
+            </div>
+            
+            <!-- End Date Field with Date Picker -->
+            <div class="mb-3">
+                {{ form.end_date.label_tag }}
+                <input type="date" name="end_date" value="{{ form.end_date.value }}" class="form-control" placeholder="Select end date" required>
+                <div class="form-text">Specify the end date for the offer.</div>
+            </div>
+            
+            <!-- Active Status Checkbox -->
+            <div class="form-check mb-3">
+                {{ form.is_active }}
+                {{ form.is_active.label_tag }}
+                <div class="form-text">Check to activate the offer immediately.</div>
+            </div>
+            
+            <!-- Submit and Back Buttons -->
+            <button type="submit" class="btn btn-primary">Update Offer</button>
+            <a href="{% url 'offer_list' %}" class="btn btn-secondary ms-2">Back to Offers List</a>
+        </form>
+    </section>
+</main>
+
+{% endblock %}

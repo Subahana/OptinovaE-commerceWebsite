@@ -1,0 +1,191 @@
+{% extends "admin_page/main.html" %}
+{% block title %}Manage Images for Variant: {{ variant.variant_name }}{% endblock %}
+
+{% block content %}
+<main class="main-wrap">
+    <section class="content-main">
+        <div class="content-header">
+            <h2 class="content-title">Manage Images for Variant: {{ variant.variant_name }}</h2>
+            <a href="{% url 'edit_variant' variant.id %}" class="btn btn-outline-secondary float-end">
+                <i class="material-icons md-arrow-back me-2"></i>Back to Variant Management
+            </a>
+        </div>
+
+        <!-- Existing Images Section -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <h5 class="mb-4">Existing Images</h5>
+                {% if existing_images %}
+                    <form id="deleteSelectedForm" method="POST" action="{% url 'delete_image' variant.id %}">
+                        {% csrf_token %}
+                        <div class="row g-4">
+                            {% for image in existing_images %}
+                                <div class="col-sm-6 col-md-4 col-lg-3">
+                                    <div class="image-card shadow-sm p-2">
+                                        <img src="{{ image.image.url }}" alt="Image {{ forloop.counter }}" class="img-fluid rounded mb-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <input type="checkbox" name="selected_images" value="{{ image.id }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <button type="submit" class="btn btn-danger mt-4" name="delete_images">
+                            <i class="material-icons md-delete"></i> Delete Selected Images
+                        </button>
+                    </form>
+                {% else %}
+                    <p class="text-muted">No images uploaded yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Upload New Images Section -->
+        {% if remaining_slots > 0 %}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <h5 class="mb-4">Upload New Images ({{ remaining_slots }} slots left)</h5>
+                <form id="uploadForm" method="POST">
+                    {% csrf_token %}
+                    <div class="row g-4">
+                        {% for i in image_indices %}
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="imageInput{{ i }}" class="form-label">Image {{ i }}</label>
+                                <input type="file" id="imageInput{{ i }}" accept="image/*" class="form-control">
+                                <img id="imagePreview{{ i }}" alt="Image {{ i }} Preview" class="img-fluid mt-2 rounded" style="max-width: 100%; display: none;">
+                                <button type="button" id="cropImageButton{{ i }}" class="btn btn-outline-secondary mt-3" style="display: none;">
+                                    <i class="material-icons md-crop me-1"></i> Crop Image {{ i }}
+                                </button>
+                                <input type="hidden" id="croppedImageData{{ i }}" name="croppedImageData{{ i }}">
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="submit" id="submitButton" class="btn btn-primary mt-4" disabled>
+                        <i class="material-icons md-file-upload me-2"></i>Upload Cropped Images
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+            You have uploaded the maximum number of images for this variant.
+        </div>
+        {% endif %}
+    </section>
+</main>
+
+<!-- Include Cropper.js CSS and JS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+    var csrfToken = '{{ csrf_token }}';
+    let cropperInstances = [];  // Array to hold Cropper instances
+
+    function setupImageHandling(index) {
+        const imageInput = document.getElementById(`imageInput${index}`);
+        const imagePreview = document.getElementById(`imagePreview${index}`);
+        const cropButton = document.getElementById(`cropImageButton${index}`);
+        const croppedImageData = document.getElementById(`croppedImageData${index}`);
+
+        // When a new image is selected
+        imageInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    cropButton.style.display = 'block';
+
+                    // Destroy the previous cropper instance if exists
+                    if (cropperInstances[index]) {
+                        cropperInstances[index].destroy();
+                    }
+
+                    // Initialize a new cropper instance
+                    cropperInstances[index] = new Cropper(imagePreview, {
+                        aspectRatio: 1,
+                        viewMode: 1
+                    });
+                };
+                reader.readAsDataURL(file);
+            } else {
+                alert("Please select a valid image file.");
+            }
+        });
+
+        // Handle cropping
+        cropButton.addEventListener('click', function() {
+            if (cropperInstances[index]) {
+                const canvas = cropperInstances[index].getCroppedCanvas();
+                const dataURL = canvas.toDataURL('image/png');
+                croppedImageData.value = dataURL;  // Store the cropped image data in the hidden field
+                document.getElementById('submitButton').disabled = false;  // Enable submit button after cropping
+                alert(`Image ${index} cropped successfully!`);
+            }
+        });
+    }
+
+    // Setup image handling for all image inputs
+    for (let i = 1; i <= {{ max_images }}; i++) {
+        setupImageHandling(i);
+    }
+</script>
+
+<!-- Custom Styling -->
+<style>
+    .main-wrap {
+        background-color: #f8f9fa;
+    }
+
+    .content-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .image-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #fff;
+        overflow: hidden;
+    }
+
+    .image-card img {
+        width: 100%;
+        height: auto;
+    }
+
+    .image-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-outline-secondary {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .btn-outline-secondary i {
+        margin-right: 5px;
+    }
+
+    .btn-primary, .btn-danger, .btn-outline-secondary {
+        font-weight: bold;
+        padding: 10px 20px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .btn-primary i, .btn-danger i, .btn-outline-secondary i {
+        margin-right: 8px;
+    }
+
+    .form-label {
+        font-weight: bold;
+    }
+</style>
+{% endblock %}

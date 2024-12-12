@@ -1,0 +1,237 @@
+<!DOCTYPE HTML>
+<html lang="en">
+{% load static %}
+
+<!-- Mirrored from wp.alithemes.com/html/evara/evara-backend/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Sun, 01 Aug 2021 15:32:35 GMT -->
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}Optinova Admin{% endblock %}</title>
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:title" content="">
+    <meta property="og:type" content="">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'img/theme/favicon.svg' %}">
+    <!-- Template CSS -->
+    <link href="{% static 'css/main.css' %}" rel="stylesheet" type="text/css" />
+
+    <style>
+        .menu-item.active .menu-link {
+            background-color: #299750; /* Active menu background color */
+            color: #fff; /* Active menu text color */
+        }
+
+        .menu-item .menu-link {
+            color: #a0a9b5; /* Default menu text color */
+            padding: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .menu-item .menu-link i {
+            margin-right: 10px;
+        }
+
+        .menu-item .menu-link:hover {
+            background-color: #3b4e63; /* Hover background */
+            color: #fff; /* Hover text */
+        }
+
+        .submenu a {
+            display: block;
+            padding: 8px 20px;
+            font-size: 14px;
+            color: #a0a9b5;
+        }
+
+        .submenu a:hover {
+            background-color: #299750; /* Hover color in submenu */
+            color: #fff;
+        }
+
+        .brand-wrap img {
+            width: 150px;
+        }
+
+        .main-header {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 10px;
+        }
+
+        .searchform input {
+            border-radius: 20px;
+            border: 1px solid #d1d5db;
+            padding: 8px 15px;
+        }
+
+        .nav-link.btn-icon {
+            color: #6b7280;
+            margin: 0 10px;
+        }
+
+        .nav-link.btn-icon:hover {
+            color: #299750;
+        }
+
+        .dropdown-menu a {
+            padding: 10px;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        .dropdown-menu a:hover {
+            background-color: #f3f4f6;
+        }
+    </style>
+    </head>
+
+<body>
+    <body>
+        <div class="screen-overlay"></div>
+        <aside class="navbar-aside" id="offcanvas_aside">
+            <div class="aside-top">
+                <a href="index.html" class="brand-wrap">
+                    <img src="{% static 'img/optinova_logo.png' %}" class="logo" alt="Evara Dashboard">
+                </a>
+                <div>
+                    <button class="btn btn-icon btn-aside-minimize"> <i class="text-muted material-icons md-menu_open"></i> </button>
+                </div>
+            </div>
+            <nav>
+                <ul class="menu-aside">
+                    <li class="menu-item {% if request.path == '/admin_page/' %}active{% endif %}">
+                        <a class="menu-link" href="{% url 'admin_page' %}"> <i class="icon material-icons md-home"></i>
+                            <span class="text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="menu-item has-submenu">
+                        <a class="menu-link" href="page-sellers-cards.html"> <i class="icon material-icons md-store"></i>
+                            <span class="text">User Management</span>
+                        </a>
+                        <div class="submenu">
+                            <a href="{% url 'user_management_page' %}">Manage Users</a>
+                        </div>
+                    </li>
+                    <li class="menu-item has-submenu">
+                        <a class="menu-link" href="page-transactions-1.html"> <i class="icon material-icons md-monetization_on"></i>
+                            <span class="text">Categories</span>
+                        </a>
+                        <div class="submenu">
+                            <a href="{% url 'category_list' %}">Categories List</a>
+                        </div>
+                    </li>
+                    <li class="menu-item has-submenu">
+                        <a class="menu-link" href="page-products-list.html"> <i class="icon material-icons md-shopping_bag"></i>
+                            <span class="text">Products</span>
+                        </a>
+                        <div class="submenu">
+                            <a href="{% url 'product_list' %}">Product List</a>
+                        </div>
+                    </li>
+                    <li class="menu-item has-submenu">
+                        <a class="menu-link" href=""> <i class="icon material-icons md-shopping_cart"></i>
+                            <span class="text">Orders</span>
+                        </a>
+                        <div class="submenu">
+                      
+                            <a href="{% url 'list_orders' %}">Order detail</a>
+                        </div>
+                    </li>  
+                    <li class="menu-item has-submenu">
+                        <a class="menu-link" href=""> <i class="icon material-icons md-local_offer"></i>
+                            <span class="text">Coupon</span>
+                        </a>
+                        <div class="submenu">
+                      
+                            <a href="{% url 'coupon_list' %}">Coupon detail</a>
+                        </div>
+                    </li>          
+                    <li class="menu-item has-submenu">
+                        <a class="menu-link" href=""> <i class="icon material-icons md-loyalty"></i>
+                            <span class="text">Brand</span>
+                        </a>
+                        <div class="submenu">
+                      
+                            <a href="{% url 'brand_list' %}">Brand details</a>
+                        </div>
+                    </li>
+                    <li class="menu-item has-submenu">
+                        <a class="menu-link" href=""> <i class="icon material-icons md-loyalty"></i>
+                            <span class="text">Offer</span>
+                        </a>
+                        <div class="submenu">
+                      
+                            <a href="{% url 'offer_list' %}">Offer details</a>
+                        </div>
+                    </li>
+                    <li class="menu-item has-submenu">
+                        <a class="menu-link" href=""> <i class="icon material-icons md-loyalty"></i>
+                            <span class="text">Sales Reporr</span>
+                        </a>
+                        <div class="submenu">
+                      
+                            <a href="{% url 'sales_report' %}">Sales Report details</a>
+                        </div>
+                    </li>
+            </nav>
+        </aside>
+        <main class="main-wrap">
+            <header class="main-header navbar">
+                <div class="col-search">
+
+                        <datalist id="search_terms">
+                            <option value="Products">
+                            <option value="New orders">
+                            <option value="Apple iphone">
+                            <option value="Ahmed Hassan">
+                        </datalist>
+                    </form>
+                </div>
+                <div class="col-nav">
+                    <button class="btn btn-icon btn-mobile me-auto" data-trigger="#offcanvas_aside"> <i class="material-icons md-apps"></i> </button>
+                    <ul class="nav">
+                        <li class="nav-item">
+                            <a href="#" class="requestfullscreen nav-link btn-icon"><i class="material-icons md-cast"></i></a>
+                        </li>
+
+                        <li class="dropdown nav-item">
+                                <a class="dropdown-item text-danger" href="{% url 'admin_logout_view' %}"><i class="material-icons md-exit_to_app"></i>Logout</a>
+                        </li>
+                    </ul>
+                </div>
+            </header>
+    <!-- content-main end// -->
+        </main>
+
+    {% block content %}
+      
+    {% endblock %}
+    <script>
+        window.onpopstate = function(event) {
+        if (window.location.pathname === '/admin_page/admin_page/') {
+            window.location.replace('/accounts/admin_login/');
+        }
+    };
+
+    </script>
+
+    <script src="{% static 'js/vendors/jquery-3.6.0.min.js' %}"></script>
+    <script src="{% static 'js/vendors/bootstrap.bundle.min.js'%}"></script>
+    <script src="{% static 'js/vendors/select2.min.js' %}"></script>
+    <script src="{% static 'js/vendors/perfect-scrollbar.js' %}"></script>
+    <script src="{% static 'js/vendors/jquery.fullscreen.min.js' %}"></script>
+    <script src="{% static 'js/vendors/chart.js' %}"></script>
+    <!-- Main Script -->
+    <script src="{% static 'js/main.js' %}" type="text/javascript"></script>
+    <script src="{% static 'js/custom-chart.js'%}" type="text/javascript"></script>
+</body>
+

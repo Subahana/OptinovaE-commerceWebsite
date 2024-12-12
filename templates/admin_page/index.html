@@ -1,0 +1,206 @@
+{% extends "admin_page/main.html" %}
+{% load static %}
+
+{% block content %}
+<main class="main-wrap">
+    <!-- Page Title -->
+    <section class="content-main">
+        <div class="card mb-4">
+
+            <!-- Header Section -->
+            <div class="content-header mb-4">
+                <h2 class="content-title">Admin Dashboard</h2>
+                <p class="text-muted">Track your store's performance in real-time.</p>
+            </div>
+            <!-- Filter Section -->
+            <div class="card shadow-lg mb-4">
+                <header class="card-header d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0">Filter Sales Data</h5>
+                    <form method="GET" class="d-flex">
+                        <label for="filter" class="me-2">Filter by:</label>
+                        <select id="filter" class="form-select w-auto" name="filter" onchange="this.form.submit()">
+                            <option value="yearly" {% if filter_option == 'yearly' %}selected{% endif %}>Yearly</option>
+                            <option value="monthly" {% if filter_option == 'monthly' %}selected{% endif %}>Monthly</option>
+                            <option value="weekly" {% if filter_option == 'weekly' %}selected{% endif %}>Weekly</option>
+                        </select>
+                    </form>
+                </header>
+            </div>
+
+            <!-- Sales Table -->
+            <div class="card shadow-lg mb-4">
+                <header class="card-header py-3">
+                    <h5 class="mb-0">Sales Data</h5>
+                </header>
+                <div class="card-body p-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-gradient">
+                                <tr>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">Total Sales</th>
+                                    <th scope="col">Total Orders</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for data in sales_data %}
+                                    <tr>
+                                        <td>{{ data.period|date:"d.m.Y" }}</td>
+                                        <td>₹{{ data.total_sales|floatformat:2 }}</td>
+                                        <td>{{ data.total_orders }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">No sales data available.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sales Chart -->
+            <div class="card shadow-lg mb-4">
+                <header class="card-header py-3">
+                    <h5 class="mb-0">Sales and Orders Chart</h5>
+                </header>
+                <div class="card-body">
+                    <canvas id="salesChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </section>
+<!-- Best Sellers Section -->
+
+</main>
+
+<!-- Chart.js Script -->
+<script>
+    const labels = {{ labels|safe }};
+    const sales = {{ sales|safe }};
+    const ordersCount = {{ orders_count|safe }};
+
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    const salesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Total Sales ($)',
+                    data: sales,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    pointBackgroundColor: '#36a2eb',
+                },
+                {
+                    label: 'Total Orders',
+                    data: ordersCount,
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    pointBackgroundColor: '#ff6384',
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                },
+            },
+        },
+    });
+</script>
+
+<!-- Styling -->
+<style>
+/* General Layout */
+.main-wrap {
+    background-color: #f5f7fa;
+    padding: 10px;
+}
+
+/* Typography */
+h2.content-title {
+    font-weight: bold;
+    color: #1d3557;
+    font-size: 2rem;
+}
+
+h5 {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+/* Card Styling */
+.card {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #dee2e6;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+}
+
+.card-header h5 {
+    margin: 0;
+}
+
+/* Table Styling */
+.table-gradient {
+    background: linear-gradient(to right, #1d3557, #457b9d);
+    color: white;
+    text-align: center;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(69, 123, 157, 0.2);
+    transition: background-color 0.3s;
+}
+
+.table {
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Chart.js Styling */
+canvas {
+    transition: transform 0.2s ease-in-out;
+}
+
+canvas:hover {
+    transform: scale(1.05);
+}
+
+/* Filter Form */
+.form-select {
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.product-card:hover, .category-card:hover, .brand-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+</style>
+
+{% endblock content %}

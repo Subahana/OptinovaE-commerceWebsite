@@ -1,0 +1,92 @@
+{% extends "accounts/main.html" %}
+{% load static %}
+
+{% block content %}
+<section>
+    <div class="bg-image">
+        <div class="card custom-card mt-5">
+            <div class="card-body">
+                
+                <!-- Centered Logo -->
+                <div class="d-flex justify-content-center mb-4">
+                    <img src="{% static 'img/optinova_logo.png' %}" alt="Optinova Logo" class="img-fluid" style="max-width: 150px;">
+                </div>
+                
+                <h2 class="text-uppercase text-center mb-4">Create an account</h2>
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    {% if messages %}
+                    <div class="alert">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="form-outline mb-3">
+                        <input type="text" placeholder="Username" id="form3Example1cg" name="username" class="form-control form-control-lg" required />
+                        {% if form.username.errors %}
+                            <div class="text-danger">
+                                {{ form.username.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-outline mb-3">
+                        <input type="text" placeholder="First Name" id="form3Example1cg" name="first_name" class="form-control form-control-lg" required />
+                        {% if form.first_name.errors %}
+                            <div class="text-danger">
+                                {{ form.first_name.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-outline mb-3">
+                        <input type="text" placeholder="Last Name" id="form3Example1cg" name="last_name" class="form-control form-control-lg" required />
+                        {% if form.last_name.errors %}
+                            <div class="text-danger">
+                                {{ form.last_name.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-outline mb-3">
+                        <input type="email" placeholder="Your Email" id="form3Example3cg" name="email" class="form-control form-control-lg" required />
+                        {% if form.email.errors %}
+                            <div class="text-danger">
+                                {{ form.email.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-outline mb-3">
+                        <input type="password" placeholder="Password" id="form3Example4cg" name="password1" class="form-control form-control-lg" required />
+                        {% if form.password1.errors %}
+                            <div class="text-danger">
+                                {{ form.password1.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-outline mb-3">
+                        <input type="password" placeholder="Repeat your password" id="form3Example4cdg" name="password2" class="form-control form-control-lg" required />
+                        {% if form.password2.errors %}
+                            <div class="text-danger">
+                                {{ form.password2.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex justify-content-center">
+                        <button type="submit" class="btn btn-primary btn-block btn-lg gradient-custom-4 text-light" >Register</button>
+                    </div>
+                </form>
+                
+                <p class="text-center text-muted mt-4 mb-0">Have already an account? <a href="{% url 'accounts:user_login_view' %}" class="fw-bold text-body"><u>Login here</u></a></p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

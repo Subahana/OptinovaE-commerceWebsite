@@ -1,0 +1,110 @@
+{% extends "admin_page/main.html" %}
+{% load static %}
+
+{% block content %}
+<main class="main-wrap">
+    <section class="content-main">
+        <div class="container my-5">
+            <h2 class="mb-4 text-center">Create New Coupon</h2>
+
+            <form method="POST" class="needs-validation" novalidate>
+            {% csrf_token %}
+
+            <!-- Coupon Code -->
+            <div class="mb-3">
+                <label for="id_code" class="form-label">Coupon Code</label>
+                <input type="text" class="form-control {% if form.code.errors %}is-invalid{% endif %}" id="id_code" name="code" value="{{ form.code.value|default_if_none:'' }}">
+                <div class="invalid-feedback">
+                {{ form.code.errors.as_text }}
+                </div>
+            </div>
+
+            <!-- Coupon Type -->
+            <div class="mb-3">
+                <label for="id_coupon_type" class="form-label">Coupon Type</label>
+                <select class="form-control {% if form.coupon_type.errors %}is-invalid{% endif %}" id="id_coupon_type" name="coupon_type" onchange="toggleCouponFields()">
+                    <option value="" disabled selected>Select a coupon type</option>
+                    <option value="percentage" {% if form.coupon_type.value == 'percentage' %}selected{% endif %}>Percentage</option>
+                    <option value="fixed" {% if form.coupon_type.value == 'fixed' %}selected{% endif %}>Fixed Amount</option>
+                </select>
+                <div class="invalid-feedback">
+                {{ form.coupon_type.errors.as_text }}
+                </div>
+            </div>
+
+            <!-- Discount Percentage -->
+            <div class="mb-3" id="discount_percentage_section" style="display: none;">
+                <label for="id_discount_percentage" class="form-label">Discount Percentage (%)</label>
+                <input type="number" class="form-control {% if form.discount_percentage.errors %}is-invalid{% endif %}" id="id_discount_percentage" name="discount_percentage" value="{{ form.discount_percentage.value|default_if_none:'' }}">
+                <div class="invalid-feedback">
+                {{ form.discount_percentage.errors.as_text }}
+                </div>
+            </div>
+
+            <!-- Discount Amount -->
+            <div class="mb-3" id="discount_amount_section" style="display: none;">
+                <label for="id_discount_amount" class="form-label">Discount Amount</label>
+                <input type="number" class="form-control {% if form.discount_amount.errors %}is-invalid{% endif %}" id="id_discount_amount" name="discount_amount" value="{{ form.discount_amount.value|default_if_none:'' }}">
+                <div class="invalid-feedback">
+                {{ form.discount_amount.errors.as_text }}
+                </div>
+            </div>
+
+            <!-- Valid From & Valid To -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="id_valid_from" class="form-label">Valid From</label>
+                    <input type="datetime-local" class="form-control {% if form.valid_from.errors %}is-invalid{% endif %}" id="id_valid_from" name="valid_from" value="{{ form.valid_from.value|default_if_none:'' }}">
+                    <div class="invalid-feedback">
+                    {{ form.valid_from.errors.as_text }}
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="id_valid_to" class="form-label">Valid To</label>
+                    <input type="datetime-local" class="form-control {% if form.valid_to.errors %}is-invalid{% endif %}" id="id_valid_to" name="valid_to" value="{{ form.valid_to.value|default_if_none:'' }}">
+                    <div class="invalid-feedback">
+                    {{ form.valid_to.errors.as_text }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active -->
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="id_active" name="active" {% if form.active.value %}checked{% endif %}>
+                <label class="form-check-label" for="id_active">Active</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Create Coupon</button>
+            </form>
+
+            <div class="mt-4 text-center">
+                <a href="{% url 'coupon_list' %}" class="btn btn-link">Back to Coupon List</a>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    function toggleCouponFields() {
+        let couponType = document.getElementById('id_coupon_type').value;
+        let discountPercentageSection = document.getElementById('discount_percentage_section');
+        let discountAmountSection = document.getElementById('discount_amount_section');
+
+        // Hide all sections first
+        discountPercentageSection.style.display = 'none';
+        discountAmountSection.style.display = 'none';
+
+        // Show the appropriate fields based on coupon type
+        if (couponType === 'percentage') {
+            discountPercentageSection.style.display = 'block';
+        } else if (couponType === 'fixed') {
+            discountAmountSection.style.display = 'block';
+        }
+    }
+
+    // Initialize the form with correct fields showing
+    document.addEventListener("DOMContentLoaded", function() {
+        toggleCouponFields();
+    });
+</script>
+{% endblock %}

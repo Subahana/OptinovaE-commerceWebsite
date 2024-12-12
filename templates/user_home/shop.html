@@ -1,0 +1,695 @@
+{% extends "user_home/main.html" %}
+{% load static %}
+
+{% block content %}
+<!-- Breadcrumb Section Begin -->
+<section class="breadcrumb-option">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb__text">
+                    <h4>Exclusive Collection</h4>
+                    <div class="breadcrumb__links">
+                        <a href="{% url 'user_home' %}">Home</a>
+                        <span>Shop</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Breadcrumb Section End -->
+<!-- Shop Section Begin -->
+<section class="shop spad bg-light py-5">
+    <div class="container">
+        <div class="row">
+            <!-- Sidebar Begin -->
+            <div class="col-lg-3 mb-4">
+                <div class="shop__sidebar p-4 bg-white shadow-sm rounded">
+                    <!-- Search Section -->
+                    <div class="shop__sidebar__search mb-4">
+                        <div class="input-group">
+                            <input 
+                                type="text" 
+                                class="form-control border-light shadow-sm" 
+                                placeholder="Search products..." 
+                                id="search-input"
+                            >
+                            <div class="input-group-append">
+                                <button class="btn btn-primary shadow-sm">
+                                    <i class="fa fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <!-- Categories Section -->
+                    <div class="shop__sidebar__accordion">
+                        <div class="accordion" id="accordionExample">
+                            <div class="card border-0">
+                                <div class="card-header bg-transparent px-0 border-0 d-flex justify-content-between align-items-center">
+                                    <h5 class="m-0 font-weight-bold text-dark">Categories</h5>
+                                    <i class="fa fa-list text-muted"></i>
+                                </div>
+                                <div id="collapseCategories" class="collapse show" data-parent="#accordionExample">
+                                    <div class="card-body px-0 pt-2">
+                                        <ul id="category-list" class="list-unstyled">
+                                            <li>
+                                                <a 
+                                                    href="#" 
+                                                    class="category-filter text-secondary active d-flex align-items-center py-1" 
+                                                    data-category="all"
+                                                >
+                                                    <i class="fa fa-folder mr-2 text-primary"></i> 
+                                                    All Categories
+                                                </a>
+                                            </li>
+                                            {% for category in categories %}
+                                                <li>
+                                                    <a 
+                                                        href="#" 
+                                                        class="category-filter text-secondary d-flex align-items-center py-1" 
+                                                        data-category="{{ category.id }}"
+                                                    >
+                                                        <i class="fa fa-folder-open mr-2 text-secondary"></i>
+                                                        {{ category.name }}
+                                                    </a>
+                                                </li>
+                                            {% empty %}
+                                                <li class="text-muted">No categories available.</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <!-- Brands Section -->
+                    <div class="shop__sidebar__accordion mt-4">
+                        <div class="accordion" id="accordionBrands">
+                            <div class="card border-0">
+                                <div class="card-header bg-transparent px-0 border-0 d-flex justify-content-between align-items-center">
+                                    <h5 class="m-0 font-weight-bold text-dark">Brands</h5>
+                                    <i class="fa fa-tags text-muted"></i>
+                                </div>
+                                <div id="collapseBrands" class="collapse show" data-parent="#accordionBrands">
+                                    <div class="card-body px-0 pt-2">
+                                        <ul id="brand-list" class="list-unstyled">
+                                            <li>
+                                                <a 
+                                                    href="#" 
+                                                    class="brand-filter text-secondary active d-flex align-items-center py-1" 
+                                                    data-brand="all"
+                                                >
+                                                    <i class="fa fa-tag mr-2 text-primary"></i> 
+                                                    All Brands
+                                                </a>
+                                            </li>
+                                            {% for brand in brands %}
+                                                <li>
+                                                    <a 
+                                                        href="#" 
+                                                        class="brand-filter text-secondary d-flex align-items-center py-1" 
+                                                        data-brand="{{ brand.id }}"
+                                                    >
+                                                        <i class="fa fa-tag mr-2 text-secondary"></i>
+                                                        {{ brand.name }}
+                                                    </a>
+                                                </li>
+                                            {% empty %}
+                                                <li class="text-muted">No brands available.</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            
+            <!-- Sidebar End -->
+
+            <!-- Product Listing Begin -->
+            <div class="col-lg-9">
+                <!-- Sort and Filter Options -->
+                <div class="shop__product__option d-flex justify-content-between align-items-center mb-4">
+                    <p class="m-0">Showing <span id="product-count">{{ products.count }}</span> results</p>
+                    <div class="shop__product__option__right">
+                        <label for="sort-select" class="mr-2 text-dark">Sort by:</label>
+                        <select id="sort-select" class="form-control shadow-sm d-inline-block w-auto">
+                            <option value="default">Featured</option>
+                            <option value="price_low">Price: Low to High</option>
+                            <option value="price_high">Price: High to Low</option>
+                            <option value="a_to_z">A - Z</option>
+                            <option value="z_to_a">Z - A</option>
+                        </select>
+                    </div>
+                </div>
+
+                            <!-- Product Grid -->
+                <div class="row" id="product-list">
+                    {% if page_obj.object_list %}
+
+                        {% for item in page_obj %}
+                        <div 
+                            class="col-lg-4 col-md-6 col-sm-6 mb-4 product-item"
+                            data-price="{{ item.main_variant.price }}"
+                            data-name="{{ item.name }}"
+                            data-category="{{ item.category.id }}"
+                            data-brand="{{ item.brand.id }}"
+                        >
+                            <div class="product__item bg-white shadow-sm rounded">
+                                
+                                <!-- Product Image -->
+                                <div class="product__item__pic position-relative">
+                                    {% if item.main_variant and item.main_variant.images.first %}
+                                        <img 
+                                            src="{{ item.main_variant.images.first.image.url }}" 
+                                            alt="{{ item.name }}" 
+                                            class="img-fluid rounded-top"
+                                        >
+                                    {% else %}
+                                        <img 
+                                            src="{% static 'img/no-image.jpg' %}" 
+                                            alt="No image available" 
+                                            class="img-fluid rounded-top"
+                                        >
+                                    {% endif %}
+                                </div>
+                                <hr>
+                                <!-- Product Hover Actions -->
+                                <ul class="product__hover list-unstyled d-flex justify-content mt-3 ">
+                                    <li>
+                                        {% if item.main_variant %}
+                                            <a 
+                                                href="javascript:void(0);" 
+                                                class="add-to-wishlist btn btn-light" 
+                                                data-variant-id="{{ item.main_variant.id }}"
+                                            >
+                                                <i 
+                                                    class="fa fa-heart heart-icon {% if item.main_variant.id in user_wishlist %}filled{% endif %}" 
+                                                    data-variant-id="{{ item.main_variant.id }}"
+                                                ></i>
+                                            </a>
+                                        {% endif %}
+                                    </li>
+                                    
+                                        <a href="{% url 'user_product_detail' item.id %}">
+                                            <h6 class=" text-primary mt-2 ml-3 ">{{ item.name }}</h6>
+                                        </a>
+                                </ul>
+                                <!-- Product Pricing -->
+                                <div class="product__item__text p-3">
+                                    {% if item.category.offers.all|length > 0 %}
+                                        {% for offer in item.category.offers.all %}
+                                            {% if offer.is_active %}
+                                                <h5 class="original-price text-muted">
+                                                    <del>₹{{ item.main_variant.price|floatformat:2 }}</del>
+                                                </h5>
+                                                <h5 class="discounted-price text-success">
+                                                    ₹{{ item.discounted_price|floatformat:2 }}
+                                                </h5>
+                                                <div class="offer-badge badge badge-success">
+                                                    {{ offer.discount_percent }}% Off
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <h5 class="price text-dark">₹{{ item.main_variant.price|floatformat:2 }}</h5>
+                                    {% endif %}
+                                </div>
+
+                            </div>
+                        </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-center text-muted">No products found on this page. Loading products from another page...</p>
+                    {% endif %}
+                </div>
+
+
+                                <!-- Pagination -->
+                    <div class="pagination__option mt-4">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                            &laquo;
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                {% for num in page_obj.paginator.page_range %}
+                                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                    </li>
+                                {% endfor %}
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                                            &raquo;
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    const csrfToken = "{{ csrf_token }}";
+    document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('search-input');
+    const sortSelect = document.getElementById('sort-select');
+    const categoryFilters = document.querySelectorAll('.category-filter');
+    const brandFilters = document.querySelectorAll('.brand-filter');
+
+    // Function to update URL parameters
+    function updateURLParams(key, value) {
+        const params = new URLSearchParams(window.location.search);
+
+        // Update the specific parameter
+        if (value === 'all' || value === '') {
+            params.delete(key); // Remove parameter if value is 'all'
+        } else {
+            params.set(key, value); // Set or update the parameter
+        }
+
+        // Redirect with updated filters
+        window.location.href = `${window.location.pathname}?${params.toString()}`;
+    }
+
+    // Event listener for category filters
+    categoryFilters.forEach(filter => filter.addEventListener('click', function () {
+        const category = this.getAttribute('data-category');
+        updateURLParams('category', category);
+    }));
+
+    // Event listener for brand filters
+    brandFilters.forEach(filter => filter.addEventListener('click', function () {
+        const brand = this.getAttribute('data-brand');
+        updateURLParams('brand', brand);
+    }));
+
+    // Event listener for search input
+    searchInput.addEventListener('input', function () {
+        updateURLParams('q', searchInput.value);
+    });
+
+    // Event listener for sort dropdown
+    sortSelect.addEventListener('change', function () {
+        updateURLParams('sort', sortSelect.value);
+    });
+
+    // Highlight active filters based on URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const selectedCategory = urlParams.get('category');
+    const selectedBrand = urlParams.get('brand');
+
+    if (selectedCategory) {
+        categoryFilters.forEach(filter => {
+            if (filter.getAttribute('data-category') === selectedCategory) {
+                filter.classList.add('active');
+            } else {
+                filter.classList.remove('active');
+            }
+        });
+    }
+
+    if (selectedBrand) {
+        brandFilters.forEach(filter => {
+            if (filter.getAttribute('data-brand') === selectedBrand) {
+                filter.classList.add('active');
+            } else {
+                filter.classList.remove('active');
+            }
+        });
+    }
+});
+
+
+
+        $(document).on('click', '.add-to-wishlist', function (e) {
+    e.preventDefault();
+    const variantId = $(this).data('variant-id');
+    const button = $(this);
+    const heartIcon = button.find('.heart-icon');
+    const url = `/cart_management/wishlist/add/${variantId}/`;
+
+    axios.post(url, {}, {
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken, // Ensure this is defined globally
+        }
+    })
+    .then(response => {
+        if (response.data.success) {
+            if (response.data.action === 'added') {
+                heartIcon.addClass('filled'); // Add 'filled' class
+                heartIcon.css('color', 'red'); // Change color to red
+                Swal.fire('Success', response.data.message, 'success');
+            } else if (response.data.action === 'removed') {
+                heartIcon.removeClass('filled'); // Remove 'filled' class
+                heartIcon.css('color', 'grey'); // Change color to grey
+                Swal.fire('Removed', 'Item removed from wishlist.', 'info');
+            }
+        } else {
+            Swal.fire('Error', 'Could not update wishlist. Try again.', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Wishlist error details:', error.response || error.message);
+        Swal.fire('Error', 'An error occurred. Please try again later.', 'error');
+    });
+});
+
+</script>
+<style>
+    /* General Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+    background-color: #f8f9fa; /* Light background for contrast */
+}
+
+/* Breadcrumb Section */
+.breadcrumb-option {
+    background-color: #002366; /* Navy blue */
+    padding: 30px 0;
+}
+
+.breadcrumb__text h4 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.breadcrumb__links a, 
+.breadcrumb__links span {
+    font-size: 16px;
+    color: #b0b0b0;
+    transition: color 0.3s ease;
+}
+
+.breadcrumb__links a:hover {
+    color: #4169E1; /* Lighter blue for hover */
+}
+
+/* Shop Sidebar */
+.shop__sidebar {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Sidebar Search Section */
+.shop__sidebar__search {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.shop__sidebar__search input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.shop__sidebar__search input:focus {
+    border-color: #4169E1; /* Focus color */
+}
+
+.shop__sidebar__search button {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: transparent;
+    border: none;
+    font-size: 18px;
+    color: #666;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.shop__sidebar__search button:hover {
+    color: #4169E1; /* Hover color */
+}
+
+/* Sidebar Categories Section */
+.shop__sidebar__categories ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.shop__sidebar__categories ul li {
+    margin-bottom: 10px;
+}
+
+.shop__sidebar__categories ul li a {
+    color: #666;
+    font-size: 16px;
+    text-decoration: none;
+    transition: color 0.3s ease, font-weight 0.3s ease;
+}
+
+.shop__sidebar__categories ul li a:hover,
+.category-filter.active {
+    font-weight: 700;
+    color: #4169E1; /* Active or hover color */
+}
+
+/* General Brand and Category Filters */
+.brand-filter.active,
+.category-filter.active {
+    font-weight: bold;
+    color: #4169E1; /* Highlight active link */
+}
+
+.brand-filter:hover,
+.category-filter:hover {
+    color: #003CB3; /* Darker hover color for better UX */
+}
+
+/* Shop Product Section */
+.shop__product__option {
+    margin-bottom: 30px;
+}
+
+.shop__product__option__left p,
+.shop__product__option__right p {
+    display: inline-block;
+    margin-right: 10px;
+    font-size: 16px;
+}
+
+#sort-select {
+    padding: 5px 10px;
+    font-size: 16px;
+}
+
+.product__item {
+    background-color: #fff;
+    height: 500px;
+    padding: 20px;
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #b1b5e0;
+}
+
+.product__item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.2);
+}
+
+.product__item__pic {
+    position: relative;
+    margin-bottom: 20px;
+    height: 260px;
+}
+
+.product__item__pic img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.product__item__pic ul {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+}
+
+.product__item__pic ul li {
+    margin-right: 10px;
+}
+
+.product__item__pic ul li a {
+    display: block;
+    height: 40px;
+    width: 40px;
+    background-color: #fff;
+    color: #4169E1;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 40px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.product__item__pic ul li a:hover {
+    background-color: #4169E1;
+    color: #fff;
+}
+
+.product__item__text h6 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+}
+
+.product__item__text h5 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #4169E1;
+}
+
+
+.add-cart {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #4169E1;
+    color: #fff;
+    font-size: 14px;
+    border-radius: 20px;
+    margin-top: 10px;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+}
+
+.add-cart:hover {
+    background-color: #002366;
+}
+
+/* Offer Badge */
+.offer-badge {
+    background-color: #a0bff1;
+    border-radius: 5px;
+    padding: 5px;
+    display: inline-block;
+}
+
+.original-price {
+    text-decoration: line-through;
+    color: red;
+}
+
+.discounted-price {
+    color: green;
+    font-weight: bold;
+}
+
+/* Wishlist and Details */
+.add-to-wishlist {
+    color: #ff6f61;
+    transition: color 0.3s ease-in-out;
+    cursor: pointer;
+}
+
+.add-to-wishlist:hover {
+    color: #ff3d2e;
+}
+.heart-icon {
+    color: grey; /* Default color */
+    transition: color 0.3s ease; /* Smooth transition */
+}
+
+.heart-icon.filled {
+    color: red; /* Color when added to wishlist */
+}
+
+
+.view-details {
+    background-color: #ff6f61;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.view-details:hover {
+    background-color: #e65b4c;
+}
+
+/* Pagination */
+.pagination .page-item.active .page-link {
+    background-color: #ff6f61;
+    color: white;
+}
+
+.pagination .page-link {
+    color: #333;
+    transition: color 0.3s;
+}
+
+/* Responsive Styles */
+@media (max-width: 991px) {
+    .shop__sidebar {
+        margin-bottom: 30px;
+    }
+
+    .breadcrumb__text h4 {
+        font-size: 24px;
+    }
+
+    .product__item__pic {
+        height: 220px;
+    }
+
+    #sort-select {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .product__item__text h6 {
+        font-size: 14px;
+    }
+
+    .product__item__text h5 {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 375px) {
+    .breadcrumb__text h4 {
+        font-size: 20px;
+    }
+
+    .product__item__pic {
+        height: 180px;
+    }
+
+    .add-cart {
+        font-size: 10px;
+        padding: 6px 12px;
+    }
+}
+
+</style>
+{% endblock %}

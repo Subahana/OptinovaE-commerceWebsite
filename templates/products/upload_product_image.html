@@ -1,0 +1,72 @@
+{% extends "admin_page/main.html" %}
+{% load static %}
+{% block title %}Product Image Upload{% endblock %}
+
+{% block content %}
+<main class="main-wrap">
+    <a href="{% url 'product_list' %}" class="btn btn-primary float-end">Back to Product Management</a>
+
+    <section class="content-main">
+        <div class="content-header">
+            <h2 class="content-title card-title">Upload Images for {{ product.name }}</h2>
+        </div>
+        <p class="text-muted">Please select the images you want to upload. You can preview them before submitting.</p>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    {% if messages %}
+                    <div class="alert">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="form-group">
+                        <label class="form-label">Select Image</label>
+                        <!-- Single image input as your form handles one image at a time -->
+                        {{ form.image }}
+                    </div>
+
+                    <div class="preview-images mt-4">
+                        <!-- Preview images will be displayed here -->
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">Upload Image</button>
+                        <a href="{% url 'product_detail' product.id %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    function previewImages(input) {
+        const previewContainer = document.querySelector('.preview-images');
+        previewContainer.innerHTML = '';
+
+        const imageInput = document.querySelector('input[name="image"]'); 
+        if (imageInput.files && imageInput.files[0]) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                const img = document.createElement('img');
+                img.setAttribute('src', e.target.result);
+                img.setAttribute('class', 'img-thumbnail');
+                img.setAttribute('style', 'width: 100px; margin: 5px;');
+                previewContainer.appendChild(img);
+            }
+
+            reader.readAsDataURL(imageInput.files[0]);
+        }
+    }
+
+    document.querySelector('input[name="image"]').addEventListener('change', function() {
+        previewImages(this);
+    });
+</script>
+{% endblock content %}

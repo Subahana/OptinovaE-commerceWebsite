@@ -1,0 +1,491 @@
+{% extends "user_home/main.html" %}
+{% load static %}
+
+{% block content %}
+<section class="breadcrumb-option">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb__text">
+                    <div class="breadcrumb__links">
+                        <a href="{% url 'user_home' %}">Home</a>
+                        <a href="{% url 'shop' %}">Shop</a>
+                        <span>Product</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Breadcrumb Section End -->
+
+<section class="product-details py-5">
+    <div class="container">
+        <div class="row">
+            <!-- Product Image Gallery -->
+            <div class="col-lg-6 col-md-6 mb-4">
+                <div class="product-gallery">
+                    <!-- Main Image with Zoom -->
+                    <div class="main-image-wrapper mb-3" style="position: relative;">
+                        <img id="zoom-image" src="{{ product.main_variant.images.all.0.image.url }}" 
+                             alt="Main Product Image" 
+                             class="img-fluid rounded shadow-lg" 
+                             style="width: 90%; height: auto; cursor: crosshair; max-width: 420px; border: 1px solid #ddd;">
+                        <!-- Zoomed Image -->
+                        <div id="zoomed-image" 
+                             style="background-image: url('{{ product.main_variant.images.all.0.image.url }}'); 
+                                    background-repeat: no-repeat; 
+                                    display: none; 
+                                    position: absolute; 
+                                    top: 0; 
+                                    left: 105%; 
+                                    transform: translateX(10px); 
+                                    background-size: 200%; 
+                                    border: 1px solid #ddd; 
+                                    background-color: #fff; 
+                                    cursor: zoom-out; 
+                                    z-index: 10; 
+                                    width: 300px; 
+                                    height: 300px;">
+                        </div>
+                    </div>
+
+                    <!-- Thumbnails -->
+                    <div class="thumbnail-container d-flex justify-content-between">
+                        {% for image in product.main_variant.images.all %}
+                        <div class="thumbnail-item mx-1">
+                            <a href="javascript:void(0);" class="thumbnail-link" data-images="{% for img in variant.images.all %}{{ img.image.url }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+                                <img src="{{ image.image.url }}" alt="Thumbnail {{ forloop.counter }}" class="img-thumbnail rounded shadow-sm" 
+                                     style="width: 80px; height: 80px; object-fit: cover; transition: transform 0.3s; cursor: pointer;">
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Information -->
+            <div class="col-lg-6 col-md-6">
+                <div class="product-info">
+                    <h2 class="product-title" style="font-size: 2rem; font-weight: 600; color: #224c84;">{{ product.name }}</h2>
+
+                    <!-- Main Variant Price Display -->
+                    <h3 class="product-price" id="price-container" style="font-size: 1.75rem; color: #333;">
+                        {% if main_variant.get_discounted_price and main_variant.get_discounted_price < main_variant.price %}
+                            <del style="color: #f80000; font-size: 1.4rem;">₹{{ main_variant.price }}</del>
+                            ₹<span id="product-price" style="font-weight: 700;">{{ main_variant.get_discounted_price }}</span>
+                        {% else %}
+                            ₹<span id="product-price" style="font-weight: 700;">{{ main_variant.price }}</span>
+                        {% endif %}
+                    </h3>                
+
+                    <!-- Availability -->
+                    <div id="availability-message" class="mb-4">
+                        <div class="variant-stock" data-variant-id="{{ product.main_variant.id }}">
+                            <h5 style="font-weight: 600; color: #333;">{{ product.main_variant.name }}</h5>
+                            {% if product.main_variant.stock_quantity == 0 %}
+                                <p class="text-danger font-weight-bold" style="font-size: 1.2rem;">{{ product.main_variant.name }}: Out of Stock</p>
+                            {% else %}
+                                <p class="text-success font-weight-bold" style="font-size: 1.2rem;">{{ product.main_variant.name }}: In Stock ({{ product.main_variant.stock }} left)</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Variants Selection -->
+                    {% if product.variants.all %}
+                    <div class="product-variants mb-4">
+                        <h5 class="font-weight-bold" style="font-size: 1rem;">Variants:</h5>
+                        <div class="variant-list d-flex flex-wrap">
+                            {% for variant in product.variants.all %}
+                            <div class="variant-item p-3 mb-3" 
+                                 data-price="{{ variant.price }}" 
+                                 data-discounted-price="{{ variant.get_discounted_price }}" 
+                                 data-stock="{{ variant.stock }}" 
+                                 data-images="{% for img in variant.images.all %}{{ img.image.url }}{% if not forloop.last %}, {% endif %}{% endfor %}"
+                                 data-variant-id="{{ variant.id }}"
+                                 style="cursor: pointer; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); background: #fff; transition: background 0.3s, transform 0.3s;">
+                                <div class="variant-color" 
+                                     style="background-color: {{ variant.color|default:'#FFFFFF' }}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid #000; margin-right:5px;"></div>
+                                <span style="font-size: 1.1rem; color: #555;">{{ variant.name }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <form id="add-to-cart-form" method="post" class="mt-4 p-4 border rounded bg-light shadow-sm" style="box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);">
+                        {% csrf_token %}
+                        <input type="hidden" name="variant_id" id="selected-variant-id" value="{{ product.main_variant.id }}">
+                    
+                        <div id="dynamic-stock-check">
+                            <div class="form-group">
+                                <label for="quantity-input" class="font-weight-bold" style="font-size: 1.2rem;">Quantity</label>
+                                <div class="input-group mb-3" style="max-width: 160px;">
+                                    <div class="input-group-prepend">
+                                        <button class="btn btn-outline-secondary" type="button" id="decrement-btn" style="font-size: 1.4rem; font-weight: bold;">-</button>
+                                    </div>
+                                    <input type="number" name="quantity" id="quantity-input" class="form-control text-center" value="1" min="1" max="{{ product.main_variant.stock }}" style="font-size: 1.3rem; padding: 10px;">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-secondary" type="button" id="increment-btn" style="font-size: 1.4rem; font-weight: bold;">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-block font-weight-bold mt-3" id="add-to-cart-btn" style="background-color: #203f68; border-color: #fb0000; font-size: 1rem; padding: 12px;">
+                                <i class="fas fa-cart-plus"></i> Add to Cart
+                            </button>
+                        </div>
+                    
+                        <div id="out-of-stock-message" class="alert alert-danger text-center mt-3" role="alert" style="display: none;">
+                            Out of Stock
+                        </div>
+                    </form>
+                    
+
+                    <!-- Description -->
+                    <div class="product-description mt-4">
+                        <h5 class="font-weight-bold" style="font-size: 1.6rem;">Description:</h5>
+                        <p>{{ product.description }}</p>
+                    </div>
+                    <!-- Additional Information -->
+                    <div class="product__details__last__option">
+                        <p style="font-size: 1.2rem; color: #2d5e9e;">Categories: {{ product.category }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- Related Products Section -->
+<section class="related-products py-5 bg-light">
+    <div class="container">
+        <h3 class="related-title mb-4 text-center">Related Products</h3>
+        <div class="row">
+            {% for related_product in related_products %}
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <a href="{% url 'user_product_detail' related_product.id %}">
+                    <div class="product-item border rounded bg-white shadow-sm">
+                        <div class="product-item-image position-relative">
+                            <!-- Display thumbnail image of related product -->
+                            {% if related_product.main_variant %}
+                                {% with related_product.main_variant.images.first as main_image %}
+                                    {% if main_image %}
+                                        <img src="{{ main_image.image.url }}" alt="{{ related_product.name }}" class="img-fluid rounded" style="width: 100%; height: auto;">
+                                    {% else %}
+                                        <img src="/path/to/default-image.jpg" alt="Default Image" class="img-fluid rounded" style="width: 100%; height: auto;">
+                                    {% endif %}
+                                {% endwith %}
+                            {% else %}
+                                <img src="/path/to/default-image.jpg" alt="Default Image" class="img-fluid rounded" style="width: 100%; height: auto;">
+                            {% endif %}   
+                            <!-- New Product Badge -->
+                            {% if related_product.is_new %}
+                            <span class="badge badge-success position-absolute top-0 start-0 m-2">New</span>
+                            {% endif %}
+                        </div>
+                        <div class="product-item-info p-3">
+                            <h6 class="product-item-title">{{ related_product.name }}</h6>
+
+                            <!-- Display product price -->
+                            <p class="product-item-price">
+                                ₹{{ related_product.price|floatformat:2 }}
+                            </p>
+
+                            <!-- Add to Cart button -->
+                            {% if related_product.variants.exists %}
+                            <a href="{% url 'user_product_detail' related_product.id %}" class="btn btn-outline-primary btn-sm">Product Detai;s</a>
+                            {% else %}
+                            <a href="#" class="btn btn-outline-secondary btn-sm disabled">No Variants Available</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<style>
+     /* General Styles */
+     body {
+            font-family: 'Poppins', sans-serif;
+            color: #333;
+            background-color: #f4f4f4;
+        }
+
+        /* Breadcrumb Section */
+        .breadcrumb-option {
+            background-color: #003366; /* Dark blue background */
+            padding: 20px 0;
+        }
+
+        .breadcrumb__text h4 {
+            font-size: 26px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .breadcrumb__links a, 
+        .breadcrumb__links span {
+            font-size: 15px;
+            color: #b0b0b0;
+        }
+
+        .breadcrumb__links a:hover {
+            color: #0099ff; /* Light blue on hover */
+        }
+        .selected-variant {
+            background-color: #89b0d9 !important; /* Change to your desired highlight color */
+            color: white;
+            border: 2px solid #111112;
+            box-shadow: 0 4px 12px rgba(86, 143, 205, 0.5);
+            transition: all 0.3s ease-in-out;
+        }
+
+</style>
+
+<script>
+    var csrfToken = '{{ csrf_token }}';
+    document.addEventListener('DOMContentLoaded', function () {
+        const zoomImage = document.getElementById('zoom-image');
+        const zoomedImage = document.getElementById('zoomed-image');
+        const variantItems = document.querySelectorAll('.variant-item');
+        const addToCartForm = document.getElementById('add-to-cart-form');
+        const quantityInput = document.getElementById('quantity-input');
+        const variantIdInput = document.getElementById('selected-variant-id');
+        const stockMessage = document.getElementById('availability-message');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const addToCartBtn = document.getElementById('add-to-cart-btn');
+        const outOfStockMessage = document.getElementById('out-of-stock-message');
+        const stockContainer = document.getElementById('dynamic-stock-check');
+        const selectedVariantInput = document.getElementById('selected-variant-id');
+
+        // Show zoom image on hover
+        zoomImage.addEventListener('mouseenter', function () {
+            zoomedImage.style.display = 'block';
+        });
+
+        // Hide zoom image when not hovering
+        zoomImage.addEventListener('mouseleave', function () {
+            zoomedImage.style.display = 'none';
+        });
+
+        // Update zoom image position on mousemove
+        zoomImage.addEventListener('mousemove', function (event) {
+            const rect = zoomImage.getBoundingClientRect();
+            const xPercent = (event.clientX - rect.left) / rect.width * 100;
+            const yPercent = (event.clientY - rect.top) / rect.height * 100;
+
+            zoomedImage.style.backgroundPosition = `${xPercent}% ${yPercent}%`;
+        });
+
+        // Function to update zoom image
+        function updateZoomImage(src) {
+            zoomImage.src = src;
+            zoomedImage.style.backgroundImage = `url(${src})`;
+        }
+
+        // Function to update thumbnails for the selected variant
+        function updateThumbnails(images) {
+            const thumbnailContainer = document.querySelector('.thumbnail-container');
+            thumbnailContainer.innerHTML = ''; // Clear existing thumbnails
+            images.split(', ').forEach(imageUrl => {
+                var thumbHtml = `
+                    <div class="thumbnail-item mx-1">
+                        <a href="javascript:void(0);" class="thumbnail-link" data-image="${imageUrl}">
+                            <img src="${imageUrl}" alt="Thumbnail" class="img-thumbnail rounded shadow-sm" style="width: 70px; height: 70px; object-fit: cover;">
+                        </a>
+                    </div>`;
+                thumbnailContainer.insertAdjacentHTML('beforeend', thumbHtml);
+            });
+
+            // Attach event listeners to new thumbnails
+            attachThumbnailEventListeners();
+        }
+
+        // Function to attach event listeners to thumbnail clicks
+        function attachThumbnailEventListeners() {
+            document.querySelectorAll('.thumbnail-link').forEach(link => {
+                link.addEventListener('click', function () {
+                    const newImageSrc = link.getAttribute('data-image');
+                    updateZoomImage(newImageSrc);
+
+                    // Remove 'selected' class from other thumbnails
+                    document.querySelectorAll('.thumbnail-link').forEach(thumb => {
+                        thumb.classList.remove('selected');
+                    });
+                    // Add 'selected' class to the clicked thumbnail
+                    link.classList.add('selected');
+                });
+            });
+        }
+
+        // Attach initial thumbnail event listeners
+        attachThumbnailEventListeners();
+
+        // Function to update quantity buttons
+        function updateQuantityButtons(newQuantity, maxStock) {
+            document.getElementById('decrement-btn').disabled = newQuantity <= 1;
+            document.getElementById('increment-btn').disabled = newQuantity >= maxStock;
+        }
+
+        // Event listener for variant selection
+        variantItems.forEach(item => {
+            item.addEventListener('click', function () {
+                variantItems.forEach(v => v.classList.remove('selected-variant'));
+
+                // Add 'selected-variant' class to the clicked item
+                item.classList.add('selected-variant');
+                const regularPrice = item.getAttribute('data-price');
+                const discountedPrice = item.getAttribute('data-discounted-price');
+                const selectedStock = parseInt(this.getAttribute('data-stock'), 10);
+                const selectedVariantId = this.getAttribute('data-variant-id');
+
+                // Update the hidden input for the selected variant
+                selectedVariantInput.value = selectedVariantId;
+
+                if (selectedStock > 0) {
+                    // Show the quantity input and enable the Add to Cart button
+                    quantityInput.max = selectedStock;
+                    quantityInput.value = 1; // Reset to default quantity
+                    stockContainer.style.display = 'block';
+                    addToCartBtn.disabled = false;
+                    outOfStockMessage.style.display = 'none';
+                } else {
+                    // Hide the quantity input and show the Out of Stock message
+                    stockContainer.style.display = 'none';
+                    outOfStockMessage.style.display = 'block';
+                }
+                // Update the price display based on availability of discounted price
+                const priceContainer = document.getElementById('price-container');
+                if (discountedPrice && discountedPrice !== "null" && discountedPrice !== regularPrice) {
+                    // Display discounted price with original price crossed out
+                    priceContainer.innerHTML = `<del style="color:  #f80000; font-size: 1.4rem;">₹${regularPrice}</del> ₹<span id="product-price" style="font-weight: 700;">${discountedPrice}</span>`;
+                } else {
+                    // Display only the original price if no discount is available
+                    priceContainer.innerHTML = `₹<span id="product-price">${regularPrice}</span>`;
+                }
+
+                // Update stock information dynamically
+                const newStock = item.getAttribute('data-stock');
+                const stockLeft = parseInt(newStock, 10);
+                
+                if (stockLeft === 0) {
+                    stockMessage.innerHTML = '<p class="text-danger font-weight-bold">Out of Stock</p>';
+                    quantityInput.disabled = true;
+                    document.getElementById('increment-btn').disabled = true;
+                } else {
+                    stockMessage.innerHTML = `<p class="text-success font-weight-bold">In Stock: ${stockLeft} left</p>`;
+                    quantityInput.disabled = false;
+                    quantityInput.max = stockLeft;
+                    quantityInput.value = 1;
+                    updateQuantityButtons(1, stockLeft);
+                }
+
+                // Update thumbnails
+                const newImages = item.getAttribute('data-images');
+                updateThumbnails(newImages);
+                // Update the main thumbnail to the first image of the variant
+                const firstImage = newImages.split(',')[0].trim();
+                if (firstImage) {
+                    updateZoomImage(firstImage); // This should update the main image zoom display
+                }
+                // Update variant ID for add-to-cart
+                const variantId = item.getAttribute('data-variant-id');
+                variantIdInput.value = variantId;
+                addToCartForm.action = `/cart_management/add_to_cart/${variantId}/`;
+            });
+        });
+
+
+        // Decrement button
+        document.getElementById('decrement-btn').addEventListener('click', function () {
+            changeQuantity(-1);
+        });
+
+        // Increment button
+        document.getElementById('increment-btn').addEventListener('click', function () {
+            changeQuantity(1);
+        });
+
+        // Function to change the quantity
+        function changeQuantity(amount) {
+            let currentQuantity = parseInt(quantityInput.value);
+            let newQuantity = currentQuantity + amount;
+
+            if (newQuantity < 1) newQuantity = 1;
+            const maxStock = parseInt(quantityInput.max);
+            if (newQuantity > maxStock) newQuantity = maxStock;
+
+            quantityInput.value = newQuantity;
+            updateQuantityButtons(newQuantity, maxStock);
+        }
+
+        // Add to cart form submission using Axios
+        addToCartForm.addEventListener('submit', function (e) {
+            e.preventDefault(); // Prevent default form submission
+
+            const variantId = variantIdInput.value;
+            const quantity = quantityInput.value;
+
+            // Basic validation for quantity
+            if (!quantity || quantity <= 0 || quantity > quantityInput.max) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Quantity',
+                    text: 'Please enter a valid Item',
+                    confirmButtonColor: '#d33',
+                    confirmButtonText: 'Try Again',
+                });
+                return;
+            }
+
+            const url = `/cart_management/add_to_cart/${variantId}/`;
+
+            // Use FormData to mimic form submission
+            const formData = new FormData();
+            formData.append('quantity', quantity);
+
+            // Send the request using Axios
+            axios.post(url, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'X-CSRFToken': csrfToken, // Ensure CSRF token is correctly passed
+                },
+            })
+            .then(response => {
+                if (response.data.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Added to Cart!',
+                        text: response.data.message,
+                        confirmButtonColor: '#28a745',
+                        confirmButtonText: 'OK',
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.data.message,
+                        confirmButtonColor: '#d33',
+                        confirmButtonText: 'Try Again',
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'An error occurred',
+                    text: 'Something went wrong, please try again later.',
+                    confirmButtonColor: '#d33',
+                    confirmButtonText: 'OK',
+                });
+            });
+        });
+    });
+</script>
+
+{% endblock %}

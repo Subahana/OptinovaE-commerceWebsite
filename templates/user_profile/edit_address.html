@@ -1,0 +1,220 @@
+{% extends "user_home/main.html" %}
+{% load static %}
+
+{% block content %}
+<div class="address-container">
+    <h2>Edit Your Address</h2>
+    <form method="POST" class="address-form">
+        {% csrf_token %}
+        <div class="form-grid">
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <span class="input-icon"><i class="fas fa-road"></i></span>
+                    {{ form.street }}
+                </div>
+                {% if form.street.errors %}
+                    <div class="error">{{ form.street.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <span class="input-icon"><i class="fas fa-city"></i></span>
+                    {{ form.city }}
+                </div>
+                {% if form.city.errors %}
+                    <div class="error">{{ form.city.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <span class="input-icon"><i class="fas fa-map-marker-alt"></i></span>
+                    {{ form.state }}
+                </div>
+                {% if form.state.errors %}
+                    <div class="error">{{ form.state.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <span class="input-icon"><i class="fas fa-mail-bulk"></i></span>
+                    {{ form.pin_code }}
+                </div>
+                {% if form.pin_code.errors %}
+                    <div class="error">{{ form.pin_code.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <span class="input-icon"><i class="fas fa-globe"></i></span>
+                    {{ form.country }}
+                </div>
+                {% if form.country.errors %}
+                    <div class="error">{{ form.country.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="button-group">
+            <button type="submit" class="btn btn-save">
+                <span>Save Address</span>
+                <i class="fas fa-save"></i>
+            </button>
+            <a href="{% url 'user_profile' %}" class="btn btn-cancel">
+                <span>Cancel</span>
+                <i class="fas fa-times"></i>
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .address-container {
+        max-width: 700px;
+        margin: 60px auto;
+        padding: 40px;
+        background: #fdfdfd;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        font-family: 'Poppins', sans-serif;
+        animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 30px;
+        color: #2c3e50;
+        font-weight: 700;
+        position: relative;
+        padding-bottom: 10px;
+    }
+    
+    h2::after {
+        content: '';
+        width: 70px;
+        height: 4px;
+        background-color: #00b4d8;
+        position: absolute;
+        left: 50%;
+        bottom: 0;
+        transform: translateX(-50%);
+        border-radius: 2px;
+    }
+
+    .address-form {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .form-group {
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    .input-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .input-wrapper input {
+        width: 100%;
+        padding: 14px 20px 14px 50px;
+        border-radius: 30px;
+        border: 1px solid #ddd;
+        font-size: 16px;
+        background-color: #f7f9fc;
+        box-shadow: inset 1px 1px 5px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .input-wrapper input:focus {
+        border-color: #00b4d8;
+        background-color: #ffffff;
+        box-shadow: 0 0 8px rgba(0, 180, 216, 0.3);
+    }
+
+    .input-wrapper input::placeholder {
+        color: #aaa;
+        font-style: italic;
+    }
+
+    .input-icon {
+        position: absolute;
+        top: 50%;
+        left: 15px;
+        transform: translateY(-50%);
+        color: #00b4d8;
+        font-size: 18px;
+    }
+
+    .button-group {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 30px;
+    }
+
+    .btn {
+        font-size: 16px;
+        font-weight: 600;
+        padding: 14px 24px;
+        border-radius: 30px;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: white;
+        border: none;
+    }
+
+    .btn span {
+        margin-right: 10px;
+    }
+
+    .btn-save {
+        background-color: #00b4d8;
+        box-shadow: 0 5px 15px rgba(0, 180, 216, 0.3);
+    }
+
+    .btn-save:hover {
+        background-color: #0096c7;
+        box-shadow: 0 7px 20px rgba(0, 180, 216, 0.4);
+        transform: translateY(-2px);
+    }
+
+    .btn-cancel {
+        background-color: #adb5bd;
+        box-shadow: 0 5px 15px rgba(173, 181, 189, 0.3);
+    }
+
+    .btn-cancel:hover {
+        background-color: #868e96;
+        box-shadow: 0 7px 20px rgba(173, 181, 189, 0.4);
+        transform: translateY(-2px);
+    }
+
+    .error {
+        color: #e63946;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

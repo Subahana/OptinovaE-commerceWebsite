@@ -1,0 +1,128 @@
+{% extends "admin_page/main.html" %}
+{% load static %}
+
+{% block content %}
+        <main class="main-wrap">
+            <section class="content-main">
+                {% if messages %}
+                <div class="alert">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="content-header">
+                    <h2 class="content-title">User Management</h2>
+                </div>
+                <div class="card mb-4">
+                    <header class="card-header">
+                        <div class="row gx-3">
+                            <div class="col-lg-4 col-md-6 me-auto">
+                                <form method="GET">
+                                    <input type="text" name="search" value="{{ request.GET.search }}" placeholder="Search..." class="form-control">
+                                </form>
+                            </div>
+                            <div class="col-lg-2 col-md-3 col-6">
+                                <form method="GET">
+                                    <select class="form-select" name="status" onchange="this.form.submit()">
+                                        <option value="">Select Status</option>
+                                        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+                                        <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                                        <option value="all" {% if request.GET.status == 'all' %}selected{% endif %}>Show All</option>
+                                    </select>
+                                </form>
+                            </div>
+                            
+                           
+                        </div>
+                    </header>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Email</th>
+                                        <th>Status</th>
+                                        <th>Registered</th>
+                                        <th class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users %}
+                                    <tr>
+                                        <td width="40%">
+                                            <a href="{% url 'user_details_page' user.id %}" class="itemside">
+                                            
+                                                <div class="info pl-3">
+                                                    <h6 class="mb-0 title">{{ user.first_name }} {{ user.last_name }}</h6>
+                                                </div>
+                                            </a>
+                                        </td>
+                                        <td>{{ user.email }}</td>
+                                        <td>
+                                            <p>
+                                                {% if user.is_active %}
+                                                    <span class="badge rounded-pill alert-success">Active</span>
+                                                {% else %}
+                                                    <span class="badge rounded-pill alert-danger">Inactive</span>
+                                                {% endif %}
+                                            </p>
+                                        </td>
+                                        <td>{{ user.date_joined|date:"d.m.Y" }}</td>
+                                        <td class="text-end">
+                                            <a href="{% url 'user_details_page' user.id %}" class="btn btn-sm btn-brand rounded font-sm mt-15">View details</a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5">No users found.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Pagination -->
+                        <div class="d-flex justify-content-end">
+                            <nav>
+                                <ul class="pagination">
+                                    {% if users.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1">&laquo; First</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ users.previous_page_number }}">Previous</a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for num in users.paginator.page_range %}
+                                        {% if users.number == num %}
+                                            <li class="page-item active">
+                                                <a class="page-link">{{ num }}</a>
+                                            </li>
+                                        {% elif num > users.number|add:'-5' and num < users.number|add:'5' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if users.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ users.next_page_number }}">Next</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ users.paginator.num_pages }}">Last &raquo;</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+
+
+{% endblock content %}

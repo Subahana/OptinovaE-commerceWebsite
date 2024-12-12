@@ -1,0 +1,110 @@
+{% extends "user_home/main.html" %}
+{% block content %}
+<div class="container mt-5">
+    <div class="order-failure text-center">
+        <!-- Failure Message with Icon -->
+        <div class="alert alert-danger py-4 shadow-sm">
+            <i class="fas fa-times-circle fa-3x mb-3 text-danger"></i>
+            <h2 class="text-danger">Oops! Something Went Wrong.</h2>
+            <p class="lead">Your order could not be completed due to a payment failure. Please try again.</p>
+        </div>
+
+        <!-- Order Summary Section -->
+        <div class="order-summary mt-5">
+            <h3 class="text-uppercase font-weight-bold">Order Summary</h3>
+            <div class="card shadow-lg border-0 mb-5">
+                <div class="card-body py-4">
+                    <div class="order-details mb-3">
+                        <p><strong>Order ID:</strong> <span class="text-muted">{{ order.id }}</span></p>
+                        <p><strong>Status:</strong> <span class="badge badge-danger">Payment Failed</span></p>
+                        <p><strong>Payment Status:</strong> <span class="badge badge-danger">Failed</span></p>
+                        <p><strong>Date:</strong> <span class="text-muted">{{ order.created_at|date:"M d, Y" }}</span></p>
+                    </div>
+
+                    <!-- Order Items Section -->
+                    <h4 class="text-dark mt-4">Items in Your Order:</h4>
+                    <div class="order-items">
+                        {% for item in order.items.all %}
+                            <div class="order-item mb-4 p-3 bg-light rounded shadow-sm">
+                                <div class="row align-items-center">
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Product:</strong> {{ item.variant.product.name }}</p>
+                                    </div>
+                                    <div class="col-md-3 text-right">
+                                        <p class="mb-1"><strong>Quantity:</strong> {{ item.quantity }}</p>
+                                        <p class="mb-1 text-danger"><strong>Price:</strong> ₹{{ item.variant.price }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p class="text-muted">No items found.</p>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Total Amount Section -->
+                    <div class="total-amount mt-4">
+                        <h4 class="text-dark"><strong>Total Amount Attempted:</strong> <span class="text-danger">₹{{ total_price }}</span></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Retry Payment Button -->
+        <div class="mt-4">
+            <a href="{% url 'complete_payment' order.id %}" class="btn btn-lg btn-success shadow-lg px-5 mt-3">
+                <i class="fas fa-credit-card"></i> Retry Payment
+            </a>
+            <a href="{% url 'shop' %}" class="btn btn-lg btn-primary shadow-lg px-5">
+                <i class="fas fa-shopping-cart"></i> Continue Shopping
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Styles for Premium Look -->
+<style>
+    .order-failure h2, .order-failure p {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    .btn-warning {
+        background-color: #FFC107;
+        border: none;
+        border-radius: 50px;
+    }
+
+    .btn-warning:hover {
+        background-color: #FFA000;
+    }
+
+    .btn-primary {
+        background-color: #0069D9;
+        border: none;
+        border-radius: 50px;
+    }
+
+    .btn-primary:hover {
+        background-color: #004AAD;
+    }
+
+    .order-items .order-item {
+        transition: all 0.3s ease-in-out;
+    }
+
+    .order-items .order-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .total-amount {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #dc3545;
+    }
+</style>
+{% endblock %}

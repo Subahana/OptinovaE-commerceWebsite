@@ -1,0 +1,100 @@
+<!DOCTYPE HTML>
+<html lang="en">
+{% load static %}
+{% load account socialaccount %}
+
+<head>
+    <meta charset="utf-8">
+    {% block title %}admin_login{% endblock %}
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'imgs/theme/favicon.svg' %}">
+    <!-- Template CSS -->
+    <link href="{% static 'css/main.css' %}" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+    <main>
+        <section>
+            <div class="container py-5 h-100">
+                <div class="row d-flex justify-content-center align-items-center h-100">
+                    <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                        <div class="card shadow-2-strong" style="border-radius: 1rem;">
+                            <div class="card-body p-5 text-center">
+                                <h3 class="mb-5">Admin Sign in</h3>
+                                <form method='POST' action="">
+                                    {% csrf_token %}
+                                    {% if messages %}
+                                    <div class="alert">
+                                        {% for message in messages %}
+                                            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if form.non_field_errors %}
+                                         <div class="alert alert-danger">
+                                            {% for error in form.non_field_errors %}
+                                                <p>{{ error }}</p>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <!-- Username Field -->
+                                    <div class="form-outline mb-4">
+                                        <input 
+                                            type="text" 
+                                            name="username" 
+                                            placeholder="Username" 
+                                            class="form-control form-control-lg {% if form.username.errors %}is-invalid{% endif %}" 
+                                        />
+                                        {% if form.username.errors %}
+                                            <div class="invalid-feedback">
+                                                {% for error in form.username.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Password Field -->
+                                    <div class="form-outline mb-4">
+                                        <input 
+                                            type="password" 
+                                            name="password" 
+                                            placeholder="Password" 
+                                            class="form-control form-control-lg {% if form.password.errors %}is-invalid{% endif %}" 
+                                        />
+                                        {% if form.password.errors %}
+                                            <div class="invalid-feedback">
+                                                {% for error in form.password.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                  
+                                    <!-- Submit Button -->
+                                    <button data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-lg btn-block" type="submit">Login</button>
+                                    
+                                    <!-- Registration Link -->
+                                 
+                                </form>
+                                <hr class="my-4">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script src="{% static 'js/vendors/jquery-3.6.0.min.js' %}"></script>
+    <script src="{% static 'js/vendors/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/vendors/jquery.fullscreen.min.js' %}"></script>
+    <!-- Main Script -->
+    <script src="{% static 'js/main.js' %}" type="text/javascript"></script>
+</body>
+</html>

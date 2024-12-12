@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPTINOVA</title>
+    {% load static %}
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+        }
+        /* Background Image */
+        .bg-image {
+            background-image: url("{% static 'img/design.png' %}"); 
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden; /* Prevent scrolling */
+        }
+        .custom-card {
+            max-width: 400px; /* Adjust card width as needed */
+            width: 100%;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        .card-body {
+            padding: 1.5rem; /* Reduced padding for a smaller card */
+        }
+        .form-outline {
+            margin-bottom: 1rem; /* Reduced margin between form fields */
+        }
+        .form-check-label {
+            font-size: 0.875rem; /* Smaller font size for the terms label */
+        }
+        .form-check-input {
+            width: auto; /* Ensure the checkbox doesn't take up too much space */
+        }
+    </style>
+
+</head>
+<body style="background-color: rgb(223, 226, 228);">
+    <!-- Background Image Wrapper -->
+    <div class="bg-image">
+        <div class="container">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

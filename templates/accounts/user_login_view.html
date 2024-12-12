@@ -1,0 +1,204 @@
+{% extends "accounts/main.html" %}
+{% load static %}
+{% load account socialaccount %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container py-5">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                <div class="card shadow-lg rounded-4">
+                    <div class="card-body p-5 text-center">
+
+                        <!-- Logo -->
+                        <div class="mb-4">
+                            <img src="{% static 'img/optinova_logo.png' %}" alt="Optinova Logo" class="img-fluid" style="max-width: 150px;">
+                        </div>
+
+                        <h3 class="mb-4 font-weight-bold text-dark">Sign In</h3>
+                        <form method='POST' action="{% url 'accounts:user_login_view' %}">
+                            {% csrf_token %}
+                            
+                            <!-- Displaying Messages -->
+                            {% if messages %}
+                                {% for message in messages %}
+                                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                            
+                            <!-- Displaying Form Errors -->
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {% for error in form.non_field_errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Username Field -->
+                            <div class="form-outline mb-4">
+                                <input 
+                                    type="text" 
+                                    name="username" 
+                                    placeholder="Username" 
+                                    class="form-control form-control-lg {% if form.username.errors %}is-invalid{% endif %}" 
+                                    required 
+                                />
+                                {% if form.username.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.username.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Password Field -->
+                            <div class="form-outline mb-4">
+                                <input 
+                                    type="password" 
+                                    name="password" 
+                                    placeholder="Password" 
+                                    class="form-control form-control-lg {% if form.password.errors %}is-invalid{% endif %}" 
+                                    required 
+                                />
+                                {% if form.password.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.password.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Forget Password Link -->
+                            <div>
+                                <p class="text-center text-muted mt-4 mb-0">
+                                    Forgot Password? <a href="{% url 'accounts:password_reset_request' %}" class="fw-bold text-body"><u>Reset Password</u></a>
+                                </p>
+                            </div>
+                            <hr class="my-4">
+                            <!-- Submit Button -->
+                            <button data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-lg btn-block" type="submit">Sign In</button>
+                            
+                            <!-- Registration Link -->
+                            <p class="text-center text-muted mt-4 mb-0">
+                                Don't have an account? <a href="{% url 'accounts:registration_view' %}" class="fw-bold text-body"><u>Register here</u></a>
+                            </p>
+                        </form>
+                        <hr class="my-4">
+                        <!-- Google Sign-In Button -->
+                        <button class="gsi-material-button" onclick="window.location.href='{% provider_login_url 'google' %}'">
+                            <div class="gsi-material-button-state"></div>
+                            <div class="gsi-material-button-content-wrapper">
+                                <div class="gsi-material-button-icon">
+                                    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" xmlns:xlink="http://www.w3.org/1999/xlink" style="display: block;">
+                                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                                        <path fill="none" d="M0 0h48v48H0z"></path>
+                                    </svg>
+                                </div>
+                                <span class="gsi-material-button-contents">Sign in with Google</span>
+                                <span style="display: none;">Sign in with Google</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .gsi-material-button {
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        -webkit-appearance: none;
+        background-color: #0d2448;
+        background-image: none;
+        border: 1px solid #747775;
+        border-radius: 20px;
+        box-sizing: border-box;
+        color: #e3e3e3;
+        cursor: pointer;
+        font-family: 'Roboto', arial, sans-serif;
+        font-size: 14px;
+        height: 40px;
+        letter-spacing: 0.25px;
+        outline: none;
+        padding: 0 12px;
+        position: relative;
+        text-align: center;
+        transition: background-color .218s, border-color .218s, box-shadow .218s;
+        vertical-align: middle;
+        width: auto;
+        max-width: 400px;
+        min-width: min-content;
+    }
+
+    .gsi-material-button .gsi-material-button-icon {
+        height: 20px;
+        margin-right: 12px;
+        width: 20px;
+    }
+
+    .gsi-material-button .gsi-material-button-content-wrapper {
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+        justify-content: space-between;
+        position: relative;
+        width: 100%;
+    }
+
+    .gsi-material-button .gsi-material-button-contents {
+        flex-grow: 1;
+        font-family: 'Roboto', arial, sans-serif;
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: top;
+    }
+
+    .gsi-material-button .gsi-material-button-state {
+        transition: opacity .218s;
+        opacity: 0;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+    }
+
+    .gsi-material-button:disabled {
+        background-color: #13131461;
+        border-color: #8e918f1f;
+        cursor: default;
+    }
+
+    .gsi-material-button:disabled .gsi-material-button-contents,
+    .gsi-material-button:disabled .gsi-material-button-icon {
+        opacity: 38%;
+    }
+
+    .gsi-material-button:not(:disabled):active .gsi-material-button-state, 
+    .gsi-material-button:not(:disabled):focus .gsi-material-button-state {
+        background-color: white;
+        opacity: 12%;
+    }
+
+    .gsi-material-button:disabled .gsi-material-button-contents {
+        color: #e3e3e3;
+    }
+
+    .gsi-material-button:disabled .gsi-material-button-icon {
+        opacity: 35%;
+    }
+</style>
+{% endblock %}

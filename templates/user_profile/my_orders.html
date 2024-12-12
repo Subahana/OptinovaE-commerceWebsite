@@ -1,0 +1,187 @@
+{% extends "user_home/main.html" %}
+
+{% block content %}
+<section class="breadcrumb-option">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb__text">
+                    <h4>My Orders</h4>
+                    <div class="breadcrumb__links">
+                        <a href="{% url 'user_home' %}">Home</a>
+                        <a href="{% url 'user_profile' %}">Profile</a>
+                        <span>My Orders</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="order-details-container">
+    <h2>My Orders</h2>
+    {% if page_obj.object_list %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Products</th>
+                    <th>Order Status</th>
+                    <th>Payment Status</th>
+                    <th>Payment Method</th>
+                    <th>Total Price</th>
+                    <th>Order Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order_detail in page_obj.object_list %}
+                    <tr>
+                        <!-- Updated Order ID -->
+                        <td class="order-id">
+                            <a href="{% url 'order_details' order_detail.id %}">
+                                {{ order_detail.order_id }}
+                            </a>
+                        </td>
+                        
+                        <!-- Products in Order -->
+                        <td>
+                            {% for item in order_detail.items.all %}
+                                {{ item.variant.product.name }} (x{{ item.quantity }})
+                                {% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
+
+                        <!-- Order Status -->
+                        <td class="order-status">
+                            <span class="badge bg-{{ order_detail.status.status|lower }}">
+                                {{ order_detail.order_status }}
+                            </span>
+                        </td>
+                        <td class="order-status">
+                            <span class="badge bg-{{ order_detail.status.status|lower }}">
+                                {{ order_detail.payment_details.payment_status.status }}
+                            </span>
+                        </td>
+
+                        <!-- Payment Status -->
+                        <td>
+                            {{ order_detail.payment_details.payment_method }}
+                        </td>
+
+                        <!-- Total Price using Order's total_amount method -->
+                        <td>₹{{ order_detail.final_price }}</td>
+
+                        <!-- Order Date -->
+                        <td class="order-date">{{ order_detail.created_at|date:"M d, Y" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <span class="step-links">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1">&laquo; First</a>
+                    <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">Next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+    {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            <h4 class="alert-heading">No orders found!</h4>
+            <p>It looks like you haven’t placed any orders yet. Start shopping and enjoy our great products!</p>
+            <a href="{% url 'shop' %}" class="btn btn-primary">Start Shopping</a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Styling section here -->
+
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: #333;
+            background-color: #f4f4f4;
+        }
+
+        /* Breadcrumb Section */
+        .breadcrumb-option {
+            background-color: #003366; /* Dark blue background */
+            padding: 20px 0;
+        }
+
+        .breadcrumb__text h4 {
+            font-size: 26px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .breadcrumb__links a, 
+        .breadcrumb__links span {
+            font-size: 15px;
+            color: #b0b0b0;
+        }
+
+        .breadcrumb__links a:hover {
+            color: #0099ff; /* Light blue on hover */
+        }
+
+        .order-details-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #FAFAFA;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            font-size: 28px;
+            color: #2C3E50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .table {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .table th, .table td {
+            text-align: center;
+            padding: 12px;
+            border: 1px solid #E0E0E0;
+        }
+
+        .table .order-status .badge {
+            padding: 5px 10px;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+
+        .pagination {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .btn-danger:hover {
+            background-color: #C62828;
+        }
+
+        .btn-secondary {
+            background-color: #B0BEC5;
+            cursor: not-allowed;
+        }
+    </style>
+{% endblock %}

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zxx">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Male_Fashion Template">
+    <meta name="keywords" content="Male_Fashion, unica, creative, html">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title> OPTINOVA </title>
+
+    {% load static %}
+
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Fancybox CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+    <!-- Local CSS Files -->
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/elegant-icons.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/magnific-popup.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/nice-select.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/slicknav.min.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" type="text/css">
+
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+</head>
+
+<body>
+    <!-- Offcanvas Menu Overlay -->
+    <div class="offcanvas-menu-overlay"></div>
+
+    <!-- Offcanvas Menu Wrapper -->
+    <div class="offcanvas-menu-wrapper">
+        <div class="offcanvas__option">
+            <div class="offcanvas__links">
+                {% if user.is_authenticated %}
+                <p style="display: inline; margin-right: 10px; color: #fff;">
+                    Welcome, {{ user.username }}
+                </p>
+                <a href="{% url 'logout_view' %}" style="color: #ff6b6b;">Log Out</a>
+                {% else %}
+                <a href="{% url 'accounts:user_login_view' %}" style="color: #ff6b6b;">Log In</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="offcanvas__nav__option">
+            <a href="#"><img src="{% static 'img/icon/heart.png' %}" alt="Favorites"></a>
+            <a href="#"><img src="{% static 'img/icon/cart.png' %}" alt="Cart"> <span>{{ cart_items_count }}</span></a>
+            <div class="price">$0.00</div>
+        </div>
+
+        <div id="mobile-menu-wrap"></div>
+    </div>
+    <!-- Offcanvas Menu End -->
+
+    <!-- Header Section Begin -->
+    <header class="header">
+        <div class="header__top" style="background-color: #003366;">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6 col-md-7">
+                        <!-- Optional Left Side Content -->
+                    </div>
+                    <div class="col-lg-6 col-md-5">
+                        <div class="header__top__right">
+                            <div class="offcanvas__links">
+                                {% if user.is_authenticated %}
+                                <p style="display: inline; margin-right: 10px; color: #fff;">
+                                    Welcome,
+                                    <a href="{% url 'user_profile' %}" style="color: #fff; text-decoration: none;">
+                                        <i class="fas fa-user-circle"></i> <!-- Profile icon -->
+                                        {{ user.username }}
+                                    </a>
+                                </p>
+                                <a href="{% url 'logout_view' %}" style="color: #ff6b6b;">Log Out</a>
+                                {% else %}
+                                <a href="{% url 'accounts:user_login_view' %}" style="color: #ff6b6b;">Log In</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-3 col-md-3">
+                    <div class="header__logo">
+                        <img src="{% static 'img/optinova_logo.png' %}"alt="Optinova Logo">
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-6">
+                    <nav class="header__menu mobile-menu">
+                        <ul>
+                            <li class="{% if request.path == '/' %}active{% endif %}">
+                                <a href="{% url 'user_home' %}">Home</a>
+                            </li>
+                            <li class="{% if request.path == '/shop/' %}active{% endif %}">
+                                <a href="{% url 'shop' %}">Shop</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                <div class="col-lg-3 col-md-3">
+                    <div class="header__nav__option">
+                        <a href="{% url 'view_wishlist' %}"><img src="{% static 'img/icon/heart.png' %}" alt="Favorites"></a>
+                        <a href="{% url 'cart_detail' %}"><img src="{% static 'img/icon/cart.png' %}" alt="Cart"> <span>{{ cart_items_count }}</span></a>
+                        <a href="{% url 'user_profile' %}" style="color: #000000; text-decoration: none;">
+                            <i class="fas fa-user-circle"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="canvas__open"><i class="fa fa-bars"></i></div>
+        </div>
+    </header>
+    <!-- Header Section End -->
+
+    <!-- Content Block -->
+    {% block content %}
+    {% endblock %}
+    <!-- Content End -->
+
+    <!-- Footer Section Begin -->
+    
+<section class="footer spad bg-dark text-white">
+    <div class="container">
+        <div class="row">
+            <!-- Company Info -->
+            <div class="col-lg-4 col-md-6">
+                <div class="footer__logo">
+                    <a href="#"><img src="{% static 'img/optinova_logo.png' %}" alt="Footer Logo"></a>
+                </div>
+                <p class="text-muted">Discover a wide range of stylish and functional eyewear for every occasion. Providing quality glasses at affordable prices!</p>
+            </div>
+            
+            <!-- Quick Links -->
+            <div class="col-lg-2 col-md-6">
+                <h5 class="font-weight-bold mb-3">Quick Links</h5>
+                <ul class="list-unstyled">
+                    <li><a href="{% url 'shop' %}" class="text-white">Shop</a></li>
+                    <li><a href="#" class="text-white">Contact Us</a></li>
+                    <li><a href="#" class="text-white">About Us</a></li>
+                    <li><a href="#" class="text-white">FAQ</a></li>
+                </ul>
+            </div>
+
+            <!-- Social Media Links -->
+            <div class="col-lg-2 col-md-6">
+                <h5 class="font-weight-bold mb-3">Follow Us</h5>
+                <ul class="list-unstyled d-flex">
+                    <li class="mr-3"><a href="#" class="text-white"><i class="fab fa-facebook-f"></i></a></li>
+                    <li class="mr-3"><a href="#" class="text-white"><i class="fab fa-twitter"></i></a></li>
+                    <li class="mr-3"><a href="#" class="text-white"><i class="fab fa-instagram"></i></a></li>
+                    <li><a href="#" class="text-white"><i class="fab fa-pinterest"></i></a></li>
+                </ul>
+            </div>
+
+            <!-- Newsletter Subscription -->
+            <div class="col-lg-4 col-md-6">
+                <h5 class="font-weight-bold mb-3">Subscribe to Our Newsletter</h5>
+                <p class="text-muted">Get the latest updates on new arrivals and exclusive discounts right to your inbox.</p>
+                <form action="#" method="post">
+                    <div class="input-group">
+                        <input type="email" class="form-control" placeholder="Enter your email" required>
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-light">Subscribe</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Footer Bottom -->
+        <div class="row mt-5 pt-4">
+            <div class="col-12 text-center">
+                <p class="text-muted">&copy; 2024 Spectacle Store. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+</section>
+    <!-- Footer Section End -->
+     <style>
+        /* Footer Section */
+.footer {
+    padding: 60px 0;
+    background-color: #00264d;
+    color: white;
+}
+
+.footer .font-weight-bold {
+    font-size: 1.2rem;
+}
+
+.footer .text-muted {
+    font-size: 0.9rem;
+}
+
+.footer .text-white {
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer .text-white:hover {
+    color: #28a745; /* Green color on hover */
+}
+
+.footer .list-unstyled {
+    padding-left: 0;
+}
+
+.footer .input-group {
+    width: 100%;
+}
+
+.footer .input-group-append .btn {
+    background-color: #0056b3;
+    color: white;
+    border: none;
+}
+
+.footer .input-group-append .btn:hover {
+    background-color: #003d7a;
+}
+
+/* Social Media Icons */
+.footer .fab {
+    font-size: 1.3rem;
+}
+
+.footer .footer-bottom {
+    padding-top: 40px;
+    background-color: #001c33;
+    color: #777;
+}
+
+.footer .footer-bottom p {
+    font-size: 0.8rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .footer .row > div {
+        margin-bottom: 30px;
+    }
+}
+     </style>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+
+    <!-- Local JavaScript Files -->
+    <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/jquery.nice-select.min.js' %}"></script>
+    <script src="{% static 'js/jquery.nicescroll.min.js' %}"></script>
+    <script src="{% static 'js/jquery.magnific-popup.min.js' %}"></script>
+    <script src="{% static 'js/jquery.countdown.min.js' %}"></script>
+    <script src="{% static 'js/jquery.slicknav.js' %}"></script>
+    <script src="{% static 'js/mixitup.min.js' %}"></script>
+    <script src="{% static 'js/owl.carousel.min.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+
+</html>

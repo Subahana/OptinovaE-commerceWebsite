@@ -1,0 +1,128 @@
+{% extends "admin_page/main.html" %}
+{% load static %}
+
+{% block content %}
+
+<main class="main-wrap">
+    <section class="content-main">
+        <div class="container my-5">
+            <div class="card p-4 shadow-lg">
+                <h2 class="text-center mb-4" style="color: #4a90e2; font-weight: 700;">Sales Report</h2>
+
+                {% if messages %}
+                <div class="alert-container txst-danger">
+                    {% for message in messages %}
+                        {% if "sales_report" in message.tags %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ message }}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Filter form -->
+                <form method="GET" action="{% url 'sales_report' %}" class="row g-3 justify-content-center">
+                    <div class="col-md-3">
+                        <label for="report_type" class="form-label">Report Type</label>
+                        <select id="report_type" name="report_type" class="form-select">
+                            <option value="daily" {% if report_type == "daily" %}selected{% endif %}>Daily</option>
+                            <option value="weekly" {% if report_type == "weekly" %}selected{% endif %}>Weekly</option>
+                            <option value="monthly" {% if report_type == "monthly" %}selected{% endif %}>Monthly</option>
+                            <option value="custom" {% if report_type == "custom" %}selected{% endif %}>Custom</option>
+                        </select>
+                    </div>
+
+                    <!-- Custom date range selection -->
+                    <div id="custom-start-date" class="col-md-3" style="display: {% if report_type == 'custom' %}block{% else %}none{% endif %};">
+                        <label for="start_date" class="form-label">Start Date</label>
+                        <input type="date" id="start_date" name="start_date" value="{{ start_date }}" class="form-control">
+                    </div>
+                    <div id="custom-end-date" class="col-md-3" style="display: {% if report_type == 'custom' %}block{% else %}none{% endif %};">
+                        <label for="end_date" class="form-label">End Date</label>
+                        <input type="date" id="end_date" name="end_date" value="{{ end_date }}" class="form-control">
+                    </div>
+
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">Generate Report</button>
+                    </div>
+                </form>
+
+                <script>
+                    // Toggle custom date range inputs based on report type selection
+                    document.getElementById('report_type').addEventListener('change', function() {
+                        const startDateField = document.getElementById('custom-start-date');
+                        const endDateField = document.getElementById('custom-end-date');
+                        
+                        // Toggle display of the custom date fields
+                        if (this.value === 'custom') {
+                            startDateField.style.display = 'block';
+                            endDateField.style.display = 'block';
+                        } else {
+                            startDateField.style.display = 'none';
+                            endDateField.style.display = 'none';
+                        }
+                    });
+                </script>
+            </div>
+
+            <!-- Report summary section -->
+            <div class="card mt-5 p-4 shadow-sm">
+                <h3 class="text-center" style="color: #4a90e2; font-weight: 500;">Report Summary</h3>
+                <div class="row text-center mt-3">
+                    <div class="col">
+                        <p>Total Sales Count</p>
+                        <h4><strong>{{ total_sales_count }}</strong></h4>
+                    </div>
+                    <div class="col">
+                        <p>Total Order Amount</p>
+                        <h4><strong>₹{{ total_order_amount }}</strong></h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report table section -->
+            <div class="card mt-4 p-4 shadow-sm">
+                <h3 class="text-center" style="color: #4a90e2; font-weight: 500;">Order Details</h3>
+                <div class="table-responsive mt-3">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Status</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td>{{ order.id }}</td>
+                                <td>{{ order.status }}</td>
+                                <td>₹{{ order.total_amount }}</td>
+                                <td>{{ order.created_at|date:"d M Y" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center">No records found for the selected date range.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Download buttons section -->
+            <div class="text-center mt-4">
+                <a href="{% url 'generate_pdf_report' %}" class="btn btn-outline-primary me-2" style="width: 200px;">
+                    <i class="bi bi-file-earmark-pdf"></i> Download PDF
+                </a>
+                <a href="{% url 'generate_excel_report' %}" class="btn btn-outline-success" style="width: 200px;">
+                    <i class="bi bi-file-earmark-spreadsheet"></i> Download Excel
+                </a>
+            </div>
+        </div>
+    </section>
+</main>
+
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends "admin_page/main.html" %}
+{% load static %}
+
+{% block content %}
+<main class="main-wrap">
+    <section class="content-main">
+        <div class="container my-5">
+            <h2 class="text-center mb-4">Coupons</h2>
+
+            <table class="table table-hover table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Coupon Code</th>
+                        <th>Discount</th>
+                        <th>Discount Type</th>
+                        <th>Valid From</th>
+                        <th>Valid To</th>
+                        <th>Active</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for coupon in coupons %}
+                        <tr>
+                            <td>{{ coupon.code }}</td>
+                            <td>
+                                {% if coupon.coupon_type == 'percentage' %}
+                                    {{ coupon.discount_percentage }}%
+                                {% else %}
+                                    ₹{{ coupon.discount_amount }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if coupon.coupon_type == 'percentage' %}
+                                    Percentage Discount
+                                {% else %}
+                                    Fixed Amount Discount
+                                {% endif %}
+                            </td>
+                            <td>{{ coupon.valid_from|date:"Y-m-d H:i" }}</td>
+                            <td>{{ coupon.valid_to|date:"Y-m-d H:i" }}</td>
+                            <td>
+                                {% if coupon.active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-list"></i>---
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                        <li>
+                                            <a href="{% url 'edit_coupon' coupon.id %}" class="dropdown-item">
+                                                <i class="bi bi-pencil"></i> Edit
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="{% url 'coupon_status' coupon.id %}" class="dropdown-item">
+                                                {% if coupon.valid_to < now %}
+                                                    Deactivate  <!-- Show Deactivate if expired -->
+                                                {% else %}
+                                                    {{ coupon.active|yesno:'Deactivate,Activate' }}  <!-- Show Activate/Deactivate based on status -->
+                                                {% endif %}
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No coupons available.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="text-center mt-4">
+                <a href="{% url 'create_coupon' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Add New Coupon
+                </a>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

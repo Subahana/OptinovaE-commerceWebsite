@@ -1,0 +1,146 @@
+{% extends "accounts/main.html" %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    form {
+        background-color: rgb(153, 191, 223);
+        width: 500px;
+        height: auto;
+        padding: 20px;
+        box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+        margin: 50px auto;
+        border-radius: 10px;
+    }
+    form p {
+        text-align: center;
+    }
+    form h3 {
+        text-align: center;
+    }
+    #timer {
+        text-align: center;
+        margin-bottom: 15px;
+        font-size: 14px;
+        color: #555;
+    }
+    #resend-otp-btn {
+        display: none;
+        text-align: center;
+        margin-top: 10px;
+    }
+    #resend-otp-btn.disabled {
+        pointer-events: none;
+        color: grey;
+        text-decoration: none;
+    }
+</style>
+
+<section>
+
+    <form method='POST'>
+        {% csrf_token %}
+        <h3><strong>Verify OTP</strong></h3>
+
+        {% if messages %}
+            <div class="alert">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="mb-3">
+            <label class="form-label">OTP</label>
+            <input class="form-control" name="otp_code" placeholder="Enter OTP" required>
+        </div>
+
+        <button id="verifybtn" class="btn btn-primary" style="width:100%">Activate Account</button>
+        <p id="timer"></p>
+        <p id="message" style="display:none;">You can resend OTP after the timer expires.</p>
+        <p><a id="resend-otp-btn" href="#" onclick="resendotp(event)">Resend OTP</a></p>
+    </form>
+</section>
+
+<script>
+    var timerDuration = 60; // Set initial timer duration in seconds
+
+    // Function to update the timer every second
+    function updateTimer() {
+        var timerElement = document.getElementById('timer');
+        timerElement.innerHTML = formatTime(timerDuration);
+
+        if (timerDuration <= 0) {
+            document.getElementById('resend-otp-btn').style.display = "block";
+            document.getElementById('resend-otp-btn').classList.remove('disabled');
+            document.getElementById('resend-otp-btn').setAttribute('href', '#');  // Enable the link
+            document.getElementById('message').style.display = "none";
+        } else {
+            document.getElementById('resend-otp-btn').style.display = "none";
+            document.getElementById('resend-otp-btn').classList.add('disabled');
+            document.getElementById('resend-otp-btn').removeAttribute('href');  // Disable the link
+            document.getElementById('message').style.display = "block";
+            timerDuration--;
+            setTimeout(updateTimer, 1000);
+        }
+    }
+
+    // Function to format the remaining time in MM:SS format
+    function formatTime(seconds) {
+        var minutes = Math.floor(seconds / 60);
+        var remainingSeconds = seconds % 60;
+        return pad(minutes) + ":" + pad(remainingSeconds);
+    }
+
+    // Function to pad single-digit numbers with leading zeros
+    function pad(number) {
+        return (number < 10 ? '0' : '') + number;
+    }
+
+    function resendotp(event) {
+        event.preventDefault();
+
+        var csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/resend_otp/', true);  
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('X-CSRFToken', csrfToken);
+
+        // Create form data
+        var formData = new FormData();
+        formData.append("username", "{{ user.username }}");  // Send the username with the form data
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                try {
+                    var response = JSON.parse(xhr.responseText);
+                    if (xhr.status === 200 && response.status === 'success') {
+                        console.log("OTP resent successfully!");
+                        alert(response.message);
+                        // Reset the timer after successful OTP resend
+                        timerDuration = 60;
+                        updateTimer();
+                    } else {
+                        console.error("Error resending OTP:", response.message);
+                        alert(response.message);
+                    }
+                } catch (e) {
+                    console.error("Error processing response:", e);
+                    alert("An error occurred.");
+                }
+            }
+        };
+
+        xhr.send(formData);  // Send the form data
+    }
+
+    // Call the updateTimer function to start the timer
+    updateTimer();
+
+    // Add event listener to Resend OTP link
+    document.getElementById('resend-otp-btn').addEventListener('click', resendotp);
+</script>
+
+{% endblock content %}

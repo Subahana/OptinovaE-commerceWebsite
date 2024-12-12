@@ -1,0 +1,186 @@
+{% extends "admin_page/main.html" %}
+{% load static %}
+
+{% block content %}
+<main class="main-wrap" style="background-color: #f8f9fa;">
+    <!-- Page Title -->
+    <div class="row mb-4">
+        <div class="col text-center">
+            <h2 class="text-uppercase" style="font-family: 'Poppins', sans-serif; font-weight: bold; color: #1a1a2e;">
+                Order Management
+            </h2>
+        </div>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card shadow-sm" style="border: none;">
+                <div class="card-body" style="background-color: #f1f1f1;">
+                    <form method="get" action="{% url 'list_orders' %}">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <input type="text" name="search" id="search" class="form-control shadow-sm"
+                                    placeholder="Search Orders" aria-label="Search Orders"
+                                    value="{{ request.GET.search }}" onkeyup="filterOrders()"
+                                    style="border-color: #1a1a2e; color: #1a1a2e;">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <select name="status_filter" id="status_filter" class="form-control shadow-sm"
+                                    aria-label="Filter by Status" onchange="this.form.submit()"
+                                    style="border-color: #1a1a2e; color: #1a1a2e;">
+                                    <option value="">All Statuses</option>
+                                    <option value="Pending" {% if request.GET.status_filter == 'Pending' %}selected{% endif %}>Pending</option>
+                                    <option value="Processing" {% if request.GET.status_filter == 'Processing' %}selected{% endif %}>Processing</option>
+                                    <option value="Returned" {% if request.GET.status_filter == 'Returned' %}selected{% endif %}>Returned</option>
+                                    <option value="Delivered" {% if request.GET.status_filter == 'Delivered' %}selected{% endif %}>Delivered</option>
+                                    <option value="Cancelled" {% if request.GET.status_filter == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <select name="sort" id="sort" class="form-control shadow-sm" aria-label="Sort Orders"
+                                    onchange="this.form.submit()" style="border-color: #1a1a2e; color: #1a1a2e;">
+                                    <option value="">Sort By</option>
+                                    <option value="date_asc" {% if request.GET.sort == 'date_asc' %}selected{% endif %}>Older Order</option>
+                                    <option value="date_desc" {% if request.GET.sort == 'date_desc' %}selected{% endif %}>Recent Order</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Table Section -->
+    <div class="row">
+        <div class="col">
+            <div class="card shadow-sm" style="border: none;">
+                <div class="table-responsive p-3">
+                    <table class="table table-hover" id="ordersTable" style="border-spacing: 0 15px; color: #1a1a2e;">
+                        <thead style="background-color: #1a1a2e; color: #fff;">
+                            <tr>
+                                <th scope="col">Order ID</th>
+                                <th scope="col">User</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Payment Method</th>
+                                <th scope="col">Payment Status</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr style="background-color: #fefefe; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                                <td>#{{ order.order_id }}</td>
+                                <td>{{ order.user.username }}</td>
+                                <td>
+                                    <span class="badge badge-status {% if order.status.status == 'Cancelled' %}badge-danger{% elif order.status.status == 'Delivered' %}badge-success{% elif order.status.status == 'Returned' %}badge-warning{% else %}badge-info{% endif %}">
+                                        {{ order.status.status }}
+                                    </span>
+                                </td>
+                                <td>{{ order.payment_details.payment_method }}</td>
+                                <td>{{ order.payment_details.payment_status }}</td>
+                                <td>
+                                    {% if order.status.status == 'Cancelled' or order.status.status == 'Delivered' or order.status.status == 'Returned' %}
+                                        <span class="text-muted">
+                                            Cannot edit: {{ order.status.status }}
+                                        </span>
+                                    {% else %}
+                                        <form action="{% url 'update_order_status' order.id %}" method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <select name="status" class="form-control form-control-sm shadow-sm"
+                                                onchange="this.form.submit()" style="border-color: #1a1a2e;">
+                                                <option value="Pending" {% if order.status.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                                <option value="Processing" {% if order.status.status == 'Processing' %}selected{% endif %}>Processing</option>
+                                                <option value="Returned" {% if order.status.status == 'Returned' %}selected{% endif %}>Returned</option>
+                                                <option value="Delivered" {% if order.status.status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                                                <option value="Cancelled" {% if order.status.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                            </select>
+                                        </form>
+                                    {% endif %}
+                                </td>
+                                
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">No orders found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="row mt-3">
+        <div class="col">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1&search={{ search_query }}&status_filter={{ status_filter }}&sort={{ sort_option }}" style="color: #1a1a2e;">First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&status_filter={{ status_filter }}&sort={{ sort_option }}" style="color: #1a1a2e;">Previous</a>
+                    </li>
+                    {% endif %}
+                    <li class="page-item active" style="background-color: #1a1a2e;">
+                        <span class="page-link" style="color: #fff;">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&status_filter={{ status_filter }}&sort={{ sort_option }}" style="color: #1a1a2e;">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&search={{ search_query }}&status_filter={{ status_filter }}&sort={{ sort_option }}" style="color: #1a1a2e;">Last</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+</main>
+
+<style>
+    .badge-status {
+        padding: 0.4em 1em;
+        font-size: 0.85rem;
+        border-radius: 1.5rem;
+    }
+
+    .badge-danger { background-color: #c0392b; color: #fff; }
+    .badge-success { background-color: #27ae60; color: #fff; }
+    .badge-info { background-color: #2980b9; color: #fff; }
+    .badge-warning { background-color: #f39c12; color: #fff; }
+</style>
+<script>
+    function filterOrders() {
+        const searchValue = document.getElementById("search").value.toLowerCase();
+        const statusFilter = document.getElementById("status_filter").value.toLowerCase();
+        const rows = document.querySelectorAll("#ordersTable tbody tr");
+
+        rows.forEach(row => {
+            const orderId = row.querySelector("td:nth-child(1)").textContent.toLowerCase();
+            const user = row.querySelector("td:nth-child(2)").textContent.toLowerCase();
+            const status = row.querySelector("td:nth-child(3)").textContent.toLowerCase();
+            const paymentMethod = row.querySelector("td:nth-child(4)").textContent.toLowerCase();
+            const canceledBy = row.querySelector("td:nth-child(5)").textContent.toLowerCase();
+
+            const isVisible = (
+                (orderId.includes(searchValue) || 
+                 user.includes(searchValue) || 
+                 status.includes(searchValue) || 
+                 paymentMethod.includes(searchValue) || 
+                 canceledBy.includes(searchValue) || 
+                 searchValue === "") &&
+                (statusFilter === "" || status === statusFilter)
+            );
+
+            row.style.display = isVisible ? "" : "none";
+        });
+    }
+</script>
+{% endblock %}
+

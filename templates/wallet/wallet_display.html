@@ -1,0 +1,205 @@
+{% extends "user_home/main.html" %}
+{% load static %}
+
+{% block content %}
+<section class="breadcrumb-option">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb__text">
+                    <h4>My Orders</h4>
+                    <div class="breadcrumb__links">
+                        <a href="{% url 'user_home' %}">Home</a>
+                        <a href="{% url 'user_profile' %}">Profile</a>
+                        <span>My Wallet</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<div class="wallet-container">
+    <!-- Wallet Balance Section -->
+    <div class="wallet-balance">
+        <h1>Wallet Details</h1>
+        <p>Current Balance: <span class="wallet-balance-amount">&#8377; {{ wallet.balance }}</span></p>
+    </div>
+
+    <!-- Transactions Section -->
+    <div class="transactions-section">
+        <h2>Transactions</h2>
+        <table class="transactions-table">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr>
+                    <td class="transaction-type">{{ transaction.get_transaction_type_display }}</td>
+                    <td class="transaction-amount">&#8377; {{ transaction.amount }}</td>
+                    <td>{{ transaction.description }}</td>
+                    <td>{{ transaction.date }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="no-transactions">No transactions found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+<!-- CSS Styling -->
+<style>
+            body {
+            font-family: 'Poppins', sans-serif;
+            color: #333;
+            background-color: #f4f4f4;
+        }
+
+        /* Breadcrumb Section */
+        .breadcrumb-option {
+            background-color: #003366; /* Dark blue background */
+            padding: 20px 0;
+        }
+
+        .breadcrumb__text h4 {
+            font-size: 26px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .breadcrumb__links a, 
+        .breadcrumb__links span {
+            font-size: 15px;
+            color: #b0b0b0;
+        }
+
+        .breadcrumb__links a:hover {
+            color: #0099ff; /* Light blue on hover */
+        }
+    .wallet-container {
+        max-width: 800px;
+        margin: auto;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .wallet-balance {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .wallet-balance h1 {
+        font-size: 28px;
+        color: #1e2a38;
+    }
+
+    .wallet-balance-amount {
+        font-size: 24px;
+        color: #28a745;
+        font-weight: bold;
+    }
+
+    .add-wallet-section {
+        margin: 20px 0;
+        text-align: center;
+    }
+
+    .add-wallet-section h2 {
+        font-size: 24px;
+        color: #1e2a38;
+        margin-bottom: 15px;
+    }
+
+    .add-wallet-section form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #amount {
+        width: 50%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    .add-funds-btn {
+        padding: 10px 20px;
+        background-color: #66b3ff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .add-funds-btn:hover {
+        background-color: #0056b3;
+    }
+
+    .transactions-section {
+        margin-top: 20px;
+    }
+
+    .transactions-section h2 {
+        font-size: 24px;
+        margin-bottom: 15px;
+        color: #1e2a38;
+        border-bottom: 2px solid #66b3ff;
+        padding-bottom: 10px;
+    }
+
+    .transactions-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    .transactions-table th, .transactions-table td {
+        padding: 10px 15px;
+        text-align: left;
+    }
+
+    .transactions-table th {
+        background-color: #66b3ff;
+        color: white;
+        text-transform: uppercase;
+        font-size: 14px;
+    }
+
+    .transactions-table tr:nth-child(even) {
+        background-color: #f1f1f1;
+    }
+
+    .transactions-table tr:hover {
+        background-color: #eaf2f8;
+    }
+
+    .transaction-type {
+        text-transform: capitalize;
+    }
+
+    .transaction-amount {
+        color: #28a745;
+        font-weight: bold;
+    }
+
+    .no-transactions {
+        text-align: center;
+        color: #999;
+        font-style: italic;
+    }
+</style>
+{% endblock %}

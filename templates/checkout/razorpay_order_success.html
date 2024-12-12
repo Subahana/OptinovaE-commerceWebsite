@@ -1,0 +1,151 @@
+{% extends "user_home/main.html" %}
+{% block content %}
+
+<div class="container py-5">
+    <!-- Success Section -->
+    <div class="text-center mb-5">
+        <div class="order-success bg-light py-5 rounded shadow">
+            <i class="fas fa-check-circle fa-4x text-primary mb-3"></i>
+            <h1 class="text-navy">Thank You!</h1>
+            <p class="lead text-muted">Your order has been successfully placed. A confirmation email is on its way.</p>
+        </div>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="order-summary mb-5">
+        <div class="text-center mb-4">
+            <h2 class="text-navy">Order Summary</h2>
+            <hr class="w-25 mx-auto border-navy">
+        </div>
+        <div class="card border-0 shadow-lg">
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p><strong>Order ID:</strong> <span class="text-navy">{{ order.id }}</span></p>
+                        <p><strong>Status:</strong> 
+                            <span class="badge badge-info px-3 py-2">{{ order.status }}</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6 text-md-right">
+                        <p><strong>Date:</strong> {{ order.created_at|date:"M d, Y" }}</p>
+                        <p><strong>Payment Status:</strong> 
+                            {% if order.payment_details.payment_status|lower == 'completed' %}
+                                <span class="badge badge-success px-3 py-2">{{ order.payment_details.payment_status }}</span>
+                            {% else %}
+                                <span class="badge badge-warning px-3 py-2">{{ order.payment_details.payment_status }}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <h4 class="text-uppercase mb-3 text-navy">Items in Your Order</h4>
+                {% for item in order.items.all %}
+                    <div class="order-item p-3 mb-3 rounded bg-white shadow-sm">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h5 class="mb-1 text-navy">{{ item.variant.product.name }}</h5>
+                                <p class="text-muted mb-0">Quantity: {{ item.quantity }}</p>
+                            </div>
+                            <div class="col-md-4 text-right">
+                                <h6 class="text-navy">₹{{ item.variant.price }}</h6>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-muted">No items found.</p>
+                {% endfor %}
+
+                <!-- Total Amount -->
+                <div class="mt-4">
+                    <h3 class="text-dark font-weight-bold">Total: <span class="text-navy">₹{{ total_price }}</span></h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Status -->
+    {% if order.payment_details.payment_status|lower != "completed" and order.payment_details.payment_status|lower != "refund" and order.status|lower != "cancelled" and order.status|lower != "returned" %}
+    <!-- Complete Payment Option -->
+    <form method="post" action="{% url 'complete_payment' order.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-lg btn-navy shadow-lg px-5 mt-3">
+            <i class="fas fa-credit-card"></i> Complete Payment
+        </button>
+    </form>
+    {% else %}
+        <div class="alert alert-navy text-center mt-4 shadow-sm">
+            <i class="fas fa-check-circle fa-2x text-navy mb-3"></i>
+            <p class="lead">Your payment has been completed successfully. Thank you for shopping with us!</p>
+        </div>
+    {% endif %}
+
+    <!-- Continue Shopping Button -->
+    <div class="text-center mt-5">
+        <a href="{% url 'shop' %}" class="btn btn-navy btn-lg px-5 shadow">
+            <i class="fas fa-shopping-cart"></i> Continue Shopping
+        </a>
+    </div>
+</div>
+
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f8f9fa;
+    }
+
+    .text-navy {
+        color: #2c3e50 !important;
+    }
+
+    .btn-navy {
+        background-color: #2c3e50;
+        color: #ffffff;
+        border: none;
+        border-radius: 50px;
+    }
+
+    .btn-navy:hover {
+        background-color: #243442;
+    }
+
+    .order-success {
+        background: #eaf2f8;
+        border: 2px solid #2c3e50;
+    }
+
+    .order-item {
+        transition: transform 0.2s ease, box-shadow 0.3s ease;
+    }
+
+    .order-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .badge-info {
+        background-color: #2c3e50;
+    }
+
+    .alert-navy {
+        background-color: #eaf2f8;
+        border: 1px solid #2c3e50;
+        color: #2c3e50;
+    }
+
+    hr {
+        border: 1px solid #2c3e50;
+    }
+
+    h2, h3, h4, h5 {
+        font-weight: bold;
+        color: #2c3e50;
+    }
+
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+</style>
+
+{% endblock %}

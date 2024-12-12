@@ -1,0 +1,388 @@
+{% extends "user_home/main.html" %}
+
+{% block content %}
+<section class="breadcrumb-option">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb__text">
+                    <h4>Order Details</h4>
+                    <div class="breadcrumb__links">
+                        <a href="{% url 'user_home' %}">Home</a>
+                        <a href="{% url 'user_profile' %}">Profile</a>
+                        <a href="{% url 'my_orders' %}">My Orders</a>
+                        <span>Order #{{ order.order_id }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="order-details-container">
+    <h3 class="text-center text-info">Order #{{ order.order_id }}</h3>
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Image</th>
+                <th>Product</th>
+                <th>Color</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+            <tr>
+                <td>
+                    <img src="{{ item.variant.images.first.image.url }}" alt="Product Image" class="img-fluid" style="width: 100px; border-radius: 10px;">
+                </td>
+                <td>{{ item.variant.product.name }}</td>
+                <td>{{ item.variant.color }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>₹{{ item.price }}</td>
+                <td>₹{{ item.total_price|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="order-summary-container">
+        <h2 class="order-summary-title">Order Summary</h2>
+    
+        <div class="order-summary-details">
+            <p class="order-status">
+                <span class="label">Status:</span>
+                <span class="value">{{ order.status }}</span>
+            </p>
+            <p class="order-date">
+                <span class="label">Order Date:</span>
+                <span class="value">{{ order.created_at|date:"M d, Y" }}</span>
+            </p>
+        </div>
+            <hr class="divider" />
+            <div class="price-item total">
+                <span class="label">Total Price:</span>
+                <span class="value">₹{{ total_price_order|floatformat:2 }}</span>
+            </div>
+        </div>
+        <div>
+            <a href="{% url 'download_invoice' order.id %}" class="btn btn-primary">Download Invoice</a>
+        </div>
+
+        {% if order.status|lower == "cancelled" %}
+        <div class="alert alert-danger mt-4">
+            <i class="fas fa-info-circle"></i>
+            <p>Your order has been canceled. {% if order.cancellation_reason %}Reason: "{{ order.cancellation_reason }}"{% endif %}</p>
+        </div>
+        {% elif order.status|lower == "returned" %}
+        <div class="alert alert-warning mt-4">
+            <i class="fas fa-exclamation-circle"></i>
+            <p>Your order has been returned. Please contact customer support for further assistance.</p>
+        </div>
+        {% endif %}
+        <div class="order-actions text-center mt-4">
+            <!-- Cancel Order Option -->
+            {% if order.status|lower == "pending" or order.status|lower == "processing" %}
+                {% if order.payment_details.payment_status|lower == "pending" %}
+                <!-- Cancel Order Option -->
+                <form method="post" action="{% url 'cancel_order' order.id %}" class="d-inline" id="cancelOrderForm">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-lg btn-danger shadow-lg px-5 mt-3" data-toggle="modal" data-target="#cancelOrderModal">
+                        <i class="fas fa-times-circle"></i> Cancel Order
+                    </button>
+                </form>
+        
+                <!-- Modal for Cancel Order Reason -->
+                <div class="modal fade" id="cancelOrderModal" tabindex="-1" role="dialog" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="cancelOrderModalLabel">Cancel Order</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <form method="post" action="{% url 'cancel_order' order.id %}">
+                                {% csrf_token %}
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label for="cancel_reason">Please provide a reason for cancelling the order:</label>
+                                        <textarea class="form-control" id="cancel_reason" name="cancel_reason" rows="3" required></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-danger">Submit Cancellation</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% elif order.payment_details.payment_status|lower == "completed" %}
+                <!-- Cancel with Refund Option -->
+                <form method="post" action="{% url 'cancel_order_with_refund' order.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-lg btn-warning shadow-lg px-5 mt-3" data-toggle="modal" data-target="#cancelOrderWithRefundModal">
+                        <i class="fas fa-redo"></i> Cancel with Refund
+                    </button>
+                </form>
+        
+                <!-- Modal for Cancel with Refund Reason -->
+                <div class="modal fade" id="cancelOrderWithRefundModal" tabindex="-1" role="dialog" aria-labelledby="cancelOrderWithRefundModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="cancelOrderWithRefundModalLabel">Cancel Order with Refund</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <form method="post" action="{% url 'cancel_order_with_refund' order.id %}">
+                                {% csrf_token %}
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label for="cancel_reason">Please provide a reason for cancelling the order with refund:</label>
+                                        <textarea class="form-control" id="cancel_reason" name="cancel_reason" rows="3" required></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-warning">Submit Refund Cancellation</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% endif %}
+        
+            <!-- Return Order Option -->
+            {% if order.status|lower == "delivered" %}
+                {% if order.payment_details.payment_status|lower == "pending" %}
+                <!-- Return Order Option -->
+                <form method="post" action="{% url 'return_order' order.id %}" class="d-inline" id="returnOrderForm">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-lg btn-warning shadow-lg px-5 mt-3" data-toggle="modal" data-target="#returnOrderModal">
+                        <i class="fas fa-undo"></i> Return Order
+                    </button>
+                </form>
+        
+                <!-- Modal for Return Order Reason -->
+                <div class="modal fade" id="returnOrderModal" tabindex="-1" role="dialog" aria-labelledby="returnOrderModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="returnOrderModalLabel">Return Order</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <form method="post" action="{% url 'return_order' order.id %}">
+                                {% csrf_token %}
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label for="return_reason">Please provide a reason for returning the order:</label>
+                                        <textarea class="form-control" id="return_reason" name="return_reason" rows="3" required></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-warning">Submit Return</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% elif order.payment_details.payment_status|lower == "completed" %}
+                <!-- Return with Refund Option -->
+                <button type="button" class="btn btn-warning btn-lg" data-toggle="modal" data-target="#returnOrderWithRefundModal">
+                    <i class="fas fa-undo"></i> Return with Refund
+                </button>
+        
+                <!-- Modal for Return with Refund Reason -->
+                <div class="modal fade" id="returnOrderWithRefundModal" tabindex="-1" role="dialog" aria-labelledby="returnOrderWithRefundModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="returnOrderWithRefundModalLabel">Return Order with Refund</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <form method="post" action="{% url 'return_order_with_refund' order.id %}">
+                                {% csrf_token %}
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label for="return_reason">Please provide a reason for returning the order with refund:</label>
+                                        <textarea class="form-control" id="return_reason" name="return_reason" rows="3" required></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-warning">Submit Return with Refund</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="order-actions text-center mt-4">
+            <!-- Cancel and Return Order Options -->
+        
+        {% if order.payment_details.payment_status|lower != "completed" and order.payment_details.payment_status|lower != "refund" and order.status|lower != "cancelled" and order.status|lower != "returned" %}
+         <!-- Complete Payment Option -->
+         <form method="post" action="{% url 'complete_payment' order.id %}">
+             {% csrf_token %}
+             <button type="submit" class="btn btn-lg btn-success shadow-lg px-5 mt-3">
+                 <i class="fas fa-credit-card"></i> Complete Payment
+             </button>
+         </form>
+        {% endif %}
+     
+        </div>
+    </div>
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        color: #333;
+        background-color: #f4f4f4;
+    }
+
+    .breadcrumb-option {
+        background-color: #003366;
+        padding: 20px 0;
+    }
+
+    .breadcrumb__text h4 {
+        font-size: 26px;
+        font-weight: 600;
+        color: #fff;
+    }
+
+    .breadcrumb__links a, 
+    .breadcrumb__links span {
+        font-size: 15px;
+        color: #b0b0b0;
+    }
+
+    .breadcrumb__links a:hover {
+        color: #0099ff;
+    }
+
+    .order-details-container {
+        max-width: 900px;
+        margin: 30px auto;
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .table th, .table td {
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    .img-fluid {
+        border: 1px solid #ddd;
+        padding: 5px;
+        border-radius: 10px;
+    }
+
+    .order-summary {
+        margin-top: 20px;
+        font-size: 18px;
+        background-color: #F8F9FA;
+        padding: 15px;
+        border-radius: 5px;
+    }
+
+    .order-actions {
+        margin-top: 20px;
+    }
+
+    .btn-danger {
+        background-color: #d9534f;
+        border-color: #d9534f;
+    }
+
+    .btn-warning {
+        background-color: #f0ad4e;
+        border-color: #f0ad4e;
+    }
+
+    .order-summary-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+    font-family: "Arial", sans-serif;
+    color: #333333;
+}
+
+.order-summary-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #003366;
+}
+
+.order-summary-details {
+    margin-bottom: 20px;
+}
+
+.order-summary-details .label {
+    font-weight: bold;
+    color: #555555;
+}
+
+.order-summary-details .value {
+    color: #333333;
+}
+
+.price-breakdown {
+    padding-top: 10px;
+}
+
+.price-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.price-item .label {
+    font-weight: 600;
+    color: #444444;
+}
+
+.price-item .value {
+    font-weight: 700;
+    color: #003366;
+}
+
+
+.price-item.total {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+.divider {
+    border: none;
+    border-top: 1px solid #dddddd;
+    margin: 10px 0;
+}
+
+</style>
+{% endblock %}

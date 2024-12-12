@@ -1,0 +1,204 @@
+{% extends "admin_page/main.html" %}
+{% load static %}
+{% block title %}Add Variant{% endblock %}
+
+{% block content %}
+<style>
+    /* Custom Select Wrapper */
+    .custom-select {
+        position: relative;
+        width: 100%;
+    }
+
+    /* Custom Dropdown */
+    .custom-dropdown {
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 10px;
+        cursor: pointer;
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* Arrow to indicate dropdown */
+    .custom-dropdown:after {
+        content: '\25BC'; /* Downward arrow */
+        margin-left: 10px;
+    }
+
+    /* Options Container (Hidden by default) */
+    .custom-options {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        max-height: 200px; /* To limit height if there are many options */
+        overflow-y: auto;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        z-index: 999;
+    }
+
+    /* Option Item */
+    .custom-option {
+        padding: 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Hover effect */
+    .custom-option:hover {
+        background-color: #f1f1f1;
+    }
+
+    /* Color Circle for Each Option */
+    .color-circle {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        margin-right: 10px;
+        border: 1px solid #ccc;
+    }
+
+    /* Show the options when dropdown is active */
+    .custom-select.active .custom-options {
+        display: block;
+    }
+</style>
+
+<main class="main-wrap">
+    <section class="content-main">
+        <div class="content-header">
+            <div>
+                <h2 class="content-title card-title">Add Variant for {{ product.name }}</h2>
+            </div>
+        </div>
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Display Non-Field Errors -->
+                    {% if variant_form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in variant_form.non_field_errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Custom Dropdown for Color Selection -->
+                    <div class="form-group">
+                        <label for="id_color">Color</label>
+                        <div class="custom-select">
+                            <div class="custom-dropdown" id="selected-color">
+                                Select a color
+                            </div>
+                            <div class="custom-options">
+                                {% for value, label in variant_form.fields.color.choices %}
+                                    <div class="custom-option" data-value="{{ value }}">
+                                        <span class="color-circle" style="background-color: {{ value|default:'#FFFFFF' }}"></span>
+                                        {{ label }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <input type="hidden" id="color-input" name="color" value="{{ variant_form.data.color }}">
+                        {% if variant_form.color.errors %}
+                            <div class="text-danger">
+                                {{ variant_form.color.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Price Field -->
+                    <div class="form-group">
+                        {{ variant_form.price.label_tag }}
+                        {{ variant_form.price }}
+                        {% if variant_form.price.errors %}
+                            <div class="text-danger">
+                                {{ variant_form.price.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Stock Field -->
+                    <div class="form-group">
+                        {{ variant_form.stock.label_tag }}
+                        {{ variant_form.stock }}
+                        {% if variant_form.stock.errors %}
+                            <div class="text-danger">
+                                {{ variant_form.stock.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Main Variant Checkbox -->
+                    <div class="form-group">
+                        {{ variant_form.is_main_variant.label_tag }}
+                        {{ variant_form.is_main_variant }}
+                        {% if variant_form.is_main_variant.errors %}
+                            <div class="text-danger">
+                                {{ variant_form.is_main_variant.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary">Save Variant</button>
+                    <a href="{% url 'product_list' %}" class="btn btn-secondary">Cancel</a>
+
+                </form>
+                
+                
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- JavaScript to Handle Custom Select Behavior -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const customSelect = document.querySelector('.custom-select');
+        const dropdown = document.querySelector('.custom-dropdown');
+        const options = document.querySelectorAll('.custom-option');
+        const hiddenInput = document.getElementById('color-input');
+
+        // Toggle dropdown visibility
+        dropdown.addEventListener('click', function() {
+            customSelect.classList.toggle('active');
+        });
+
+        // Handle option click
+        options.forEach(option => {
+            option.addEventListener('click', function() {
+                const value = option.getAttribute('data-value');
+                const label = option.innerText.trim();
+
+                // Update the selected color display
+                dropdown.innerHTML = option.innerHTML;
+
+                // Set the hidden input value
+                hiddenInput.value = value;
+
+                // Close the dropdown
+                customSelect.classList.remove('active');
+            });
+        });
+
+        // Close dropdown if clicking outside
+        document.addEventListener('click', function(e) {
+            if (!customSelect.contains(e.target)) {
+                customSelect.classList.remove('active');
+            }
+        });
+    });
+</script>
+
+{% endblock content %}

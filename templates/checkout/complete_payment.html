@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Razorpay Payment</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+</head>
+<body>
+    <h1>Complete Your Payment</h1>
+
+    <button id="rzp-button1">Pay with Razorpay</button>
+    
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        // var csrfToken = "{{ csrf_token }}";  // Django's CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');    
+
+        // Set CSRF token in Axios default headers
+        axios.defaults.headers.common['X-CSRFToken'] = csrfToken;
+        const OrderId = "{{ order.id }}";
+
+        var options = {
+            "key": "{{ razorpay_key }}", // Razorpay Key ID
+            "amount": "{{ total_price }}"/ 100 , // Amount in paisa
+            "currency": "INR",
+            "name": "{{ user_name }}",
+            "description": "Order Payment",
+            "order_id": "{{ razorpay_order_id }}", // Razorpay order ID
+            "callback_url": "http://localhost:8000/order_management/verify_razorpay_payment/" + OrderId + "/",
+            "prefill": {
+                "name": "{{ user_name }}",
+                "email": "{{ user_email }}",
+            },
+            "theme": {
+                "color": "#0099ff" // Customize the color
+            }
+        };
+
+        var rzp1 = new Razorpay(options);
+
+        document.getElementById('rzp-button1').onclick = function (e) {
+            rzp1.open();
+            e.preventDefault();
+        };
+
+        rzp1.on('payment.success', function (response) {
+    axios.post('/order_management/verify_razorpay_payment/', {
+        razorpay_payment_id: response.razorpay_payment_id,
+        razorpay_order_id: response.razorpay_order_id,
+    }, {
+        headers: { 'X-CSRFToken': csrfToken }
+    }).then((res) => {
+        console.log("Payment Verified:", res.data);
+        window.location.href = `/order_management/order/success/razorpay/${response.razorpay_order_id}/${order.id}/`;
+
+    }).catch((err) => {
+        console.error("Payment Verification Failed:", err);
+        alert("Payment verification failed. Please try again.");
+    });
+});
+rzp1.on('payment.failed', function (response) {
+    // Handle payment failure
+    console.error("Payment Failed:", response.error);
+
+    // You can display an alert or handle the error as needed
+    alert("Payment failed. Please try again.");
+    
+    // Optionally, you can redirect the user to a failure page
+    window.location.href = "/order_management/order_failure//${response.razorpay_order_id}"; // Change to your failure page URL
+
+    // You can also send the failure details to the backend for logging or further actions
+    axios.post('/order_management/payment_failure/', {
+        razorpay_payment_id: response.error.payment_id,
+        error_description: response.error.description,
+    }, {
+        headers: { 'X-CSRFToken': csrfToken }
+    }).then((res) => {
+        console.log("Payment failure recorded:", res.data);
+    }).catch((err) => {
+        console.error("Failed to record payment failure:", err);
+    });
+});
+
+        // // Listening for Razorpay Payment Completion and Passing CSRF Token
+        // rzp1.on('payment.success', function (response) {
+        //     axios.post('/order_management/verify_razorpay_payment/', {
+        //         razorpay_payment_id: response.razorpay_payment_id,
+        //         razorpay_order_id: response.razorpay_order_id,
+        //         csrfmiddlewaretoken: csrfToken // Attach CSRF token here
+
+        //     }, {
+        //         headers: { 'X-CSRFToken': csrfToken ,
+        //         'Content-Type': 'application/json'
+
+        //         }
+        //     }).then((res) => {
+        //         console.log("Payment Verified:", res.data);
+        //         window.location.href = "/order_success/";  // Redirect on success
+        //     }).catch((err) => {
+        //         console.error("Payment Verification Failed:", err);
+        //         alert("Payment verification failed.");
+        //     });
+        // });
+    </script>
+</body>
+</html>
