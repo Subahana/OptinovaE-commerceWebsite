@@ -97,8 +97,20 @@ def registration_view(request):
         if form.is_valid():
             user = form.save(commit=False)
             user.is_active = True  
-            user.save()
             # Signal will handle OTP creation and email sending
+            # Check if the user signed up through Google authentication
+            google_account = SocialAccount.objects.filter(user=user).first()
+            if google_account:
+                # If Google account, activate the user immediately (skip OTP)
+                user.is_active = True
+                user.save()
+
+                # Optionally: You can add any custom logic you need for Google users
+                messages.success(request, 'Account created successfully via Google. You can now log in.')
+                return redirect('user_home')  # Or wherever you want to redirect the user after Google login
+
+           
+            user.save()            
 
             messages.success(request, 'Account created successfully! Please check your email to verify your account.')
             return redirect('accounts:otp_verify', username=user.username)

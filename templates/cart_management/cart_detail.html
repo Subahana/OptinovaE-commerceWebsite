@@ -106,7 +106,7 @@
                     <h6>Apply Coupon</h6>
                     <form id="coupon-form" method="post" action="{% url 'apply_coupon' %}">
                         {% csrf_token %}
-                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                        <input type="hidden" name="csrfmiddlewaretoken1" value="{{ csrf_token }}">
                         <input type="text" id="coupon_code" name="coupon_code" placeholder="Enter coupon code">
                         <button type="button" id="apply-coupon-btn" style="background:#003366;">Apply Coupon</button>
                     </form>
@@ -142,15 +142,16 @@
 <script>
 
 </script>
-<script>
+<!-- <script>
     var csrfToken = '{{ csrf_token }}';
-</script>
+</script> -->
 
 <!-- Shopping Cart Section End -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         let appliedCouponCode = ''; // Track applied coupon code
-        // var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value || '{{ csrf_token }}';
+        var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value || '{{ csrf_token }}';
+        // axios.defaults.headers.common['X-CSRFToken'] = csrfToken;
 
         var axiosInstance = axios.create({
             headers: { 'X-CSRFToken': csrfToken }
@@ -232,15 +233,15 @@
             console.log(couponCode,"coupon");
             
     const applyCouponUrl = "{% url 'apply_coupon' %}";
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;  // Ensure this is how you're getting the CSRF token
-
-    axiosInstance.post(applyCouponUrl, 
+            console.log(csrfToken,'csrf');
+            
+    axios.post(applyCouponUrl, 
         { coupon_code: couponCode },  // This is the body of the POST request
-        // { 
-        //     headers: {
-        //         'X-CSRFToken': csrfToken  // Ensure this token is correct
-        //     }
-        // }
+        { 
+            headers: {
+                'X-CSRFToken': csrfToken  // Ensure this token is correct
+            }
+        }
     )
     .then(response => {
         if (response.data.success) {

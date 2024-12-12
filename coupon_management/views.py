@@ -67,12 +67,11 @@ def apply_coupon(request):
         return JsonResponse({'success': False, 'error': 'Invalid request method. Please use POST.'}, status=405)
 
     try:
+        print('print',request.META.get('HTTP_X_CSRFTOKEN'))  # Log the received CSRF token
+
         # Parse JSON data from the request body
-        print(request.headers)  # Log incoming headers
-        print("Server-side CSRF Token:", get_token(request))
         data = json.loads(request.body)
         coupon_code = data.get('coupon_code', '').strip()
-        print(coupon_code,'coupon')
         if not coupon_code:
             return JsonResponse({'success': False, 'error': {'coupon_code': 'Coupon code is required.'}}, status=400)
 
@@ -92,6 +91,7 @@ def apply_coupon(request):
 
         # Validate the coupon
         coupon = Coupon.objects.filter(code__iexact=coupon_code, active=True).first()
+        print(coupon)
         if not coupon:
             return JsonResponse({'success': False, 'error': 'Invalid or expired coupon code.'}, status=400)
 
@@ -129,7 +129,6 @@ def apply_coupon(request):
             'coupon_discount_amount': float(coupon_discount_amount),
             'offer_discount_amount': float(offer_discount_amount),
             'total_items': cart_items.count(),
-            'csrf_token': get_token(request),
         })
 
     except json.JSONDecodeError:

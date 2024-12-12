@@ -115,6 +115,7 @@ def cart_detail(request):
         cart.final_price = final_total
         cart.save()
         print(cart.final_price)
+        print("Server-side CSRF Token:", get_token(request))
         context = {
             'cart_items': cart_items,
             'cart_items_with_offers': cart_items_with_offers,

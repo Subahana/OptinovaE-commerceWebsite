@@ -14,6 +14,23 @@ User = get_user_model()
 def handle_google_user(sender, request, sociallogin, **kwargs):
     user = sociallogin.user
 
+    # Check if the user signed in using Google
+    if sociallogin.account.provider == 'google':
+        user.is_google_user = True
+        user.is_active = True  # Activate the user immediately
+        user.save()
+
+        # Ensure a wallet is created for the user
+        Wallet.objects.get_or_create(user=user)
+        print(f"Google user setup complete for {user.email}")
+
+        # Optionally, send a success message or log it for debugging
+        print(f"User {user.email} logged in and activated via Google.")
+
+@receiver(social_account_added)
+def handle_google_user(sender, request, sociallogin, **kwargs):
+    user = sociallogin.user
+
     if sociallogin.account.provider == 'google':
         user.is_google_user = True
         user.is_active = True  # Activate Google Sign-In users immediately
@@ -22,7 +39,6 @@ def handle_google_user(sender, request, sociallogin, **kwargs):
         # Ensure a wallet is created for the user
         Wallet.objects.get_or_create(user=user)
         print(f"Google user setup complete for {user.email}")
-
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_token(sender, instance, created, **kwargs):
