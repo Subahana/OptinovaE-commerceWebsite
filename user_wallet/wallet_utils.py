@@ -58,7 +58,7 @@ def process_refund_to_wallet(order):
         raise Exception("Refund can only be processed for paid orders.")
     
     # Ensure the order has not already been refunded
-    if payment_status == 'refund':
+    if payment_status == 'Refunded to Wallet':
         raise Exception("Refund has already been processed for this order.")
     
     # Calculate the refund amount

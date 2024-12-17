@@ -3,95 +3,92 @@
 
 {% block content %}
 
-<!-- Breadcrumb Section Begin -->
-<section class="breadcrumb-option bg-light py-3">
+<!-- Breadcrumb Section -->
+<section class="breadcrumb-option py-3">
     <div class="container">
         <div class="row">
             <div class="col-lg-12">
-                <div class="breadcrumb__text">
-                    <h4 class="text-uppercase text-navy">My Wishlist</h4>
-                    <div class="breadcrumb__links">
-                        <a href="{% url 'user_home' %}" class="text-light">Home</a>
-                        <a href="{% url 'shop' %}" class="text-light">Shop</a>
-                        <span class="text-muted">My Wishlist</span>
-                    </div>
-                </div>
+                <h4 class="text-uppercase text-white">My Wishlist</h4>
+                <nav class="breadcrumb__links d-inline-block">
+                    <a href="{% url 'user_home' %}" class="text-white">Home</a> 
+                    <a href="{% url 'shop' %}" class="text-white">Shop</a> 
+                    <span class="text-light">My Wishlist</span>
+                </nav>
             </div>
         </div>
     </div>
 </section>
 
+<!-- Wishlist Section -->
 <section class="wishlist-section my-5">
     <div class="container">
-        <h2 class="text-center mb-5 text-navy display-4 font-weight-bold">My Wishlist</h2>
+        <h2 class="text-center mb-5 display-4 text-dark font-weight-bold">My Wishlist</h2>
+        {% if is_empty %}
+        <!-- Empty Wishlist State -->
+        <div class="text-center my-5">
+            <img src="{% static 'img/empty_wishlist.png' %}" alt="Empty Wishlist" class="img-fluid mb-4" style="max-width: 200px;">
+            <h3 class="text-muted mb-3">Your wishlist is empty!</h3>
+            <p class="text-secondary">Start adding products to your wishlist to keep track of your favorites.</p>
+            <a href="{% url 'shop' %}" class="btn btn-navy px-4 py-2 rounded-pill shadow-sm">Browse Products</a>
+        </div>
 
-        {% if wishlist_items %}
-            <!-- Form with onsubmit event handler -->
-            <form id="wishlist-form" method="post" onsubmit="handleBulkDelete(event)">
-                {% csrf_token %}
-                <div class="row">
-                    {% for item in wishlist_items %}
-                        <div class="col-lg-4 col-md-6 mb-5">
-                            <div class="card wishlist-card shadow-lg border-0" style="border-radius: 20px;">
-                                <div class="card-body p-4 text-center position-relative">
-                                    <!-- Checkbox for selecting the item -->
-                                    <input type="checkbox" class="wishlist-checkbox position-absolute" style="top: 15px; right: 15px;" name="selected_items" value="{{ item.id }}" onchange="toggleDeleteButton()" />
+        {% elif wishlist_items %}
+        <!-- Wishlist Form -->
+        <form id="wishlist-form" method="post" onsubmit="handleBulkDelete(event)">
+            {% csrf_token %}
+            <div class="row">
+                {% for item in wishlist_items %}
+                <div class="col-lg-4 col-md-6 mb-5">
+                    <div class="wishlist-card card shadow border-0 rounded-lg position-relative">
+                        <!-- Checkbox -->
+                        <input type="checkbox" class="wishlist-checkbox position-absolute" name="selected_items" value="{{ item.id }}" onchange="toggleDeleteButton()" style="top: 15px; right: 15px; transform: scale(1.4);" />
 
-                                    <h5 class="card-title mb-3 text-uppercase text-navy">{{ item.product.name }}</h5>
-
-                                    {% with item.product.main_variant as main_variant %}
-                                        {% if main_variant %}
-                                            {% if main_variant.images.exists %}
-                                                <img src="{{ main_variant.images.first.image.url }}" alt="{{ main_variant.color }}" class="img-fluid rounded my-3 wishlist-img" style="max-height: 250px; object-fit: cover;">
-                                            {% else %}
-                                                <img src="{% static 'img/shopping-cart/default-image.jpg' %}" alt="Default Image" class="img-fluid rounded my-3 wishlist-img">
-                                            {% endif %}
-
-                                            <!-- Link to the product details page -->
-                                            <div class="d-flex justify-content-center align-items-center mt-3">
-                                                <a href="{% url 'user_product_detail' item.product.id %}" class="btn btn-gradient-navy text-white rounded-pill px-5 py-2 shadow-sm">View Product</a>
-                                            </div>
-                                        {% else %}
-                                            <p class="text-muted">Main variant not available.</p>
-                                        {% endif %}
-                                    {% endwith %}
-                                </div>
-                            </div>
+                        <div class="card-body text-center p-4">
+                            <h5 class="card-title text-navy mb-3 font-weight-bold">{{ item.product.name }}</h5>
+                            {% with item.product.main_variant as main_variant %}
+                                {% if main_variant %}
+                                    {% if main_variant.images.exists %}
+                                        <img src="{{ main_variant.images.first.image.url }}" alt="{{ main_variant.color }}" class="wishlist-img rounded mb-4 img-fluid">
+                                    {% else %}
+                                        <img src="{% static 'img/shopping-cart/default-image.jpg' %}" alt="Default Image" class="wishlist-img rounded mb-4 img-fluid">
+                                    {% endif %}
+                                    <a href="{% url 'user_product_detail' item.product.id %}" class="btn btn-navy rounded-pill px-4 py-2 shadow-sm">View Product</a>
+                                {% else %}
+                                    <p class="text-muted">Main variant not available</p>
+                                {% endif %}
+                            {% endwith %}
                         </div>
-                    {% endfor %}
+                    </div>
                 </div>
+                {% endfor %}
+            </div>
 
-                <!-- Delete Selected Button (hidden by default) -->
-                <div class="text-center mt-4">
-                    <button id="delete-selected" type="submit" class="btn btn-danger rounded-pill px-4 mt-3 shadow-lg" style="display: none;">Delete Selected</button>
-                </div>
-            </form>
+            <!-- Delete Selected Button -->
+            <div class="text-center mt-4">
+                <button id="delete-selected" type="submit" class="btn btn-danger rounded-pill px-5 py-2 shadow-sm" style="display: none;">Delete Selected</button>
+            </div>
+        </form>
         {% else %}
-            <div class="alert alert-info text-center font-weight-bold">Your wishlist is empty.</div>
+        <!-- No Wishlist Items -->
+        <div class="alert alert-info text-center">No items found in your wishlist.</div>
         {% endif %}
     </div>
 </section>
 
 <script>
-    // Function to toggle the visibility of the delete button
     function toggleDeleteButton() {
         const checkboxes = document.querySelectorAll('.wishlist-checkbox');
         const deleteButton = document.getElementById('delete-selected');
         let isChecked = false;
 
         checkboxes.forEach(checkbox => {
-            if (checkbox.checked) {
-                isChecked = true;  // At least one checkbox is checked
-            }
+            if (checkbox.checked) isChecked = true;
         });
-
-        // Show the delete button only if any checkbox is checked
         deleteButton.style.display = isChecked ? 'inline-block' : 'none';
     }
 
-    // Handle bulk delete using Axios
     function handleBulkDelete(event) {
-        event.preventDefault();  // Prevent form submission
+        event.preventDefault();
 
         const selectedItems = [];
         document.querySelectorAll('.wishlist-checkbox:checked').forEach(checkbox => {
@@ -99,23 +96,11 @@
         });
 
         if (selectedItems.length > 0) {
-            axios.post('{% url "remove_from_wishlist" %}', {
-                'selected_items': selectedItems
-            }, {
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}'  // Pass the CSRF token
-                }
-            })
-            .then(response => {
-                if (response.status === 200) {
-                    location.reload();  // Reload the page to reflect changes
-                } else {
-                    console.error('Error removing items from wishlist');
-                }
-            })
-            .catch(error => {
-                console.error('Error during the Axios request', error);
-            });
+            axios.post('{% url "remove_from_wishlist" %}', { 'selected_items': selectedItems }, {
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            }).then(response => {
+                if (response.status === 200) location.reload();
+            }).catch(error => console.error('Error:', error));
         } else {
             alert('Please select at least one item.');
         }
@@ -123,73 +108,66 @@
 </script>
 
 <style>
+    /* General Styles */
     body {
         font-family: 'Poppins', sans-serif;
         background-color: #f8f9fa;
-        color: #333;
     }
 
-    /* Breadcrumb Section */
+    .text-navy {
+        color: #003366 !important;
+    }
+
+    .btn-navy {
+        background-color: #003366;
+        color: #fff;
+        font-weight: 600;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .btn-navy:hover {
+        background-color: #0b70b3;
+        color: #fff;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Breadcrumb */
     .breadcrumb-option {
-        background: linear-gradient(135deg, #0b3055, #003366);
-        padding: 25px 0;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background-color: #003366;
+        color: #fff;
+        padding: 20px 0;
     }
 
-    .breadcrumb__text h4 {
-        font-size: 28px;
-        font-weight: 700;
-        color: #ffffff;
-        margin: 0;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Wishlist Section */
-    .wishlist-section h2 {
-        color: #003366;
-        font-size: 36px;
-        font-weight: 800;
-        margin-bottom: 40px;
-        text-transform: uppercase;
-    }
-
+    /* Wishlist Cards */
     .wishlist-card {
-        background-color: #ffffff;
-        border: none;
-        border-radius: 15px;
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
     }
 
     .wishlist-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
     }
 
     .wishlist-img {
-        height: 200px;
+        max-height: 220px;
         object-fit: cover;
-        border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .btn-gradient-navy {
-        background: linear-gradient(135deg, #003366, #0066cc);
-        color: #ffffff;
-        font-weight: 600;
     }
 
     .wishlist-checkbox {
-        transform: scale(1.5);
-        margin-right: 10px;
+        cursor: pointer;
     }
 
     #delete-selected {
-        background-color: #dc3545;
-        border: none;
-        font-weight: 600;
-        padding: 12px 25px;
+        transition: background-color 0.3s ease;
+    }
+
+    #delete-selected:hover {
+        background-color: #c82333;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
     }
 </style>
 

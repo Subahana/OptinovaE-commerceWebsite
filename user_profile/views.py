@@ -18,10 +18,12 @@ from django.utils import timezone
 User = get_user_model()
 
 
+# --------------Profile---------------#
+
 @login_required(login_url='accounts:user_login_view')
 def user_profile(request):
     user = request.user
-    addresses = user.addresses.all()
+    addresses = Address.objects.filter(user=request.user, is_deleted=False)
     orders = Order.objects.filter(user=user)
 
     if request.method == 'POST':
@@ -40,7 +42,6 @@ def user_profile(request):
 
     }
     return render(request, 'user_profile/user_profile_page.html', context)
-
 
 @login_required(login_url='accounts:user_login_view')
 def edit_profile(request):
@@ -62,6 +63,9 @@ def edit_profile(request):
         'profile': user,  # Pass the user instance directly to the template
     })
 
+
+# --------------change_password---------------#
+
 @login_required
 def change_password(request):
     if request.method == 'POST':
@@ -79,6 +83,7 @@ def change_password(request):
     return render(request, 'user_profile/change_password.html', {'form': form})
 
 
+# --------------Address---------------#
 
 @login_required(login_url='accounts:user_login_view')
 def add_address(request):
@@ -107,12 +112,15 @@ def edit_address(request, address_id):
 
 @login_required(login_url='accounts:user_login_view')
 def delete_address(request, address_id):
-    address = get_object_or_404(Address, id=address_id)
+    address = get_object_or_404(Address, id=address_id, user=request.user, is_deleted=False)
     if request.method == 'POST':
-        address.delete()
+        address.soft_delete()  # Call the custom soft delete method
         messages.success(request, 'Address deleted successfully.')
         return redirect('user_profile')  # or wherever you want to redirect after deletion
     return redirect('user_profile')
+
+
+# --------------Order---------------#
 
 @login_required(login_url='accounts:user_login_view')
 def my_orders(request):
@@ -187,7 +195,7 @@ def order_details(request, order_id):
                 return redirect('order_details', order_id=order.id)
 
         # Return Order Logic
-        if 'return_order' in request.POST:
+        elif 'return_order' in request.POST:
             if order.status.lower() == 'delivered':
                 order.return_order()
                 messages.success(request, "Return request has been submitted.")
@@ -195,6 +203,9 @@ def order_details(request, order_id):
             else:
                 messages.error(request, "This order cannot be returned.")
                 return redirect('order_details', order_id=order.id)
+        # Proceed to Payment Logic
+        elif 'proceed_to_payment' in request.POST:
+            return redirect('complete_payment', order_id=order.id)
 
     # Pass necessary data to the template
     return render(request, 'checkout/order_details.html', {

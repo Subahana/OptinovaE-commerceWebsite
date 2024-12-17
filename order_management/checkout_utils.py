@@ -26,7 +26,7 @@ def handle_address_selection(form, user):
 
 
 # Helper function to create order and its items
-def create_order_and_items(user, address, payment_details, cart_items, total_price, coupon):
+def create_order_and_items(user, address, payment_details, cart_items, total_price, coupon, total_discount):
     """Create an order and associated order items."""
     with transaction.atomic():
         order = Order.objects.create(
@@ -45,17 +45,17 @@ def create_order_and_items(user, address, payment_details, cart_items, total_pri
             )
         return order
 
+# ----------------------- Payment Methods -----------------------
 
 # Handle Cash on Delivery (COD) Payment
-def handle_cod_payment(request, cart_items, address, total_price, coupon):
+def handle_cod_payment(request, cart_items, address, total_price, coupon,total_discount):
     """Handle Cash on Delivery payment method."""
     payment_status, _ = PaymentStatus.objects.get_or_create(status="Pending")
     payment_details = PaymentDetails.objects.create(
         payment_method="COD",
         payment_status=payment_status
     )
-    order = create_order_and_items(request.user, address, payment_details, cart_items, total_price, coupon)
-
+    order = create_order_and_items(request.user, address, payment_details, cart_items, total_price, coupon,total_discount)
     # Clear the cart
     cart_items.delete()
 
@@ -65,7 +65,7 @@ def handle_cod_payment(request, cart_items, address, total_price, coupon):
 
 
 # Handle Wallet Payment
-def handle_wallet_payment(request, cart_items, address, total_price, coupon):
+def handle_wallet_payment(request, cart_items, address, total_price, coupon,total_discount):
     """Handle wallet payment method."""
     wallet = ensure_wallet_exists(request.user)  # Helper function to get user's wallet
 
@@ -81,7 +81,7 @@ def handle_wallet_payment(request, cart_items, address, total_price, coupon):
         )
 
         # Create order and items
-        order = create_order_and_items(request.user, address, payment_details, cart_items, total_price, coupon)
+        order = create_order_and_items(request.user, address, payment_details, cart_items, total_price, coupon,total_discount)
 
         # Clear the cart
         cart_items.delete()
@@ -96,7 +96,7 @@ def handle_wallet_payment(request, cart_items, address, total_price, coupon):
 
 
 # Handle Razorpay Payment
-def handle_razorpay_payment(request, cart_items, address, total_price, coupon):
+def handle_razorpay_payment(request, cart_items, address, total_price, coupon,total_discount):
     """Handle Razorpay payment method."""
     payment_status, _ = PaymentStatus.objects.get_or_create(status="Pending")
     payment_details = PaymentDetails.objects.create(
@@ -105,7 +105,7 @@ def handle_razorpay_payment(request, cart_items, address, total_price, coupon):
     )
 
     # Create order and items
-    order = create_order_and_items(request.user, address, payment_details, cart_items, total_price, coupon)
+    order = create_order_and_items(request.user, address, payment_details, cart_items, total_price, coupon,total_discount)
 
     # Integrate Razorpay payment initialization
     razorpay_client = razorpay.Client(auth=(settings.RAZOR_PAY_KEY_ID, settings.RAZOR_PAY_KEY_SECRET))

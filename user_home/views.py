@@ -18,7 +18,7 @@ from user_wallet.models import Wallet
 from itertools import chain
 
 
-
+@never_cache
 @login_required(login_url='accounts:user_login_view')
 def user_product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -71,6 +71,7 @@ def user_product_detail(request, product_id):
 
     return render(request, 'user_home/shop_details.html', context)
 
+@never_cache
 @login_required(login_url='accounts:user_login_view')
 def shop(request):
     # Fetch categories, products, brands, and active offers
@@ -130,7 +131,7 @@ def shop(request):
 
     # Prepare context for rendering
     context = {
-        'products': page_obj,
+        'products': products,
         'categories': categories,
         'brands': brands,
         'user_wishlist': user_wishlist,
@@ -139,7 +140,7 @@ def shop(request):
 
     return render(request, 'user_home/shop.html', context)
 
-
+@never_cache
 @login_required(login_url='accounts:user_login_view')
 def user_home(request):
 
@@ -169,11 +170,12 @@ def user_home(request):
     }
     return render(request, 'user_home/index.html', context)
 
-
 # View to handle user logout
+@never_cache
 @login_required(login_url='accounts:user_login_view')
 def logout_view(request):
     if request.user.is_authenticated:
+        request.session.flush()
         logout(request)
     # Redirect to a specific page after logout or default to home
     return redirect(request.GET.get('next', 'accounts:first_page'))

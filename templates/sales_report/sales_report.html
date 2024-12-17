@@ -90,7 +90,8 @@
                             <tr>
                                 <th>Order ID</th>
                                 <th>Status</th>
-                                <th>Amount</th>
+                                <th>Orginal Price</th>
+                                <th>User Price</th>
                                 <th>Date</th>
                             </tr>
                         </thead>
@@ -99,7 +100,8 @@
                             <tr>
                                 <td>{{ order.id }}</td>
                                 <td>{{ order.status }}</td>
-                                <td>₹{{ order.total_amount }}</td>
+                                <td>₹{{ order.original_total }}</td> 
+                                <td>₹{{ order.discounted_price }}</td> 
                                 <td>{{ order.created_at|date:"d M Y" }}</td>
                             </tr>
                             {% empty %}

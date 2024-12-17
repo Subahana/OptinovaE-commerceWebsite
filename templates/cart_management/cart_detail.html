@@ -248,12 +248,14 @@
             swal.fire("Success!", "Coupon applied successfully!", "success");
             updateCartTotals(response.data);  // Assuming you have a function to update cart totals
         } else {
+            console.log("hgghgghfgh",response.data);
+            
             swal.fire("Error!", response.data.error || "Invalid coupon.", "error");
         }
     })
-    .catch(error => {
-        console.error('Error:', error.response?.data || error.message);
-        swal.fire("Error!", "There was an issue applying the coupon.", "error");
+    .catch(error => {    
+        var err= error.response?.data.error;
+        swal.fire("Error!",err,"error");
     });
 }
 

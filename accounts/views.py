@@ -6,7 +6,9 @@ from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
 from .forms import UserSignupForm
 from .models import OtpToken
-from products.models import Product
+from products.models import Product,Category
+from brand_management.models import Brand
+from offer_management.models import CategoryOffer
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.core.mail import send_mail
@@ -14,10 +16,9 @@ from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password
 from django.conf import settings
 import logging
+from django.core.paginator import Paginator
 
 logger = logging.getLogger(__name__)
-
-
 User = get_user_model()
 
 @never_cache
@@ -67,7 +68,6 @@ def password_reset_verify(request, username):
 
     return render(request, 'accounts/password_reset_verify.html', {'user': user})
 
-
 @never_cache
 def password_reset_form(request, username):
     if request.user.is_authenticated:
@@ -86,7 +86,6 @@ def password_reset_form(request, username):
             messages.error(request, "Passwords do not match. Please try again.")
 
     return render(request, 'accounts/password_reset_form.html', {'user': user})
-
 
 @never_cache
 def registration_view(request):
@@ -219,7 +218,6 @@ def admin_login(request):
     context = {'form': form}
     return render(request, 'admin_page/admin_login.html', context)
 
-
 @never_cache
 def user_login_view(request):
     if request.user.is_authenticated:
@@ -249,8 +247,23 @@ def user_login_view(request):
 def first_page(request):
     if request.user.is_authenticated and request.user.is_superuser:
         return redirect('admin_page')  
-    products = Product.objects.all()  # Fetch all products
+    categories = Category.objects.filter(is_active=True)
+    brands = Brand.objects.filter(is_active=True)
+    active_offers = CategoryOffer.objects.filter(is_active=True)
+
+    # Fetch products and prefetch related fields for optimization
+    products = Product.objects.filter(is_active=True).prefetch_related('category', 'variants')
+    paginator = Paginator(products, 3)  # Show 6 products per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    # Add discounted price for each product
+    for product in page_obj:
+        main_variant = product.main_variant  # Assuming main_variant is a method/property
+        product.discounted_price = main_variant.get_discounted_price() if main_variant else product.price
+
     context = {
         'products': products,
+        'active_offers': active_offers,
+        'page_obj': page_obj,
     }
     return render(request, 'user_home/index.html',context)

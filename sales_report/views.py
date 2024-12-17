@@ -17,8 +17,12 @@ from io import BytesIO
 import pytz 
 from django.contrib import messages
 from decimal import Decimal
-
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import Paragraph
 # --------------Sales Report---------------#
+
 
 def sales_report(request):
     today = timezone.now().date()
@@ -45,7 +49,7 @@ def sales_report(request):
         
         if end_date > today:
             # Add an error message if the end date is after today
-            messages.error(request, "End date cannot be in the future.",extra_tags="sales_report")
+            messages.error(request, "End date cannot be in the future.", extra_tags="sales_report")
             # Optionally, set the start and end date to today if invalid
             start_date = today
             end_date = today
@@ -61,25 +65,29 @@ def sales_report(request):
     orders = (
         Order.objects.filter(created_at__date__range=[start_date, end_date])
         .annotate(
-            total_amount=Sum(F('items__price') * F('items__quantity'), output_field=DecimalField()),
-            total_discount=F('coupon__discount_amount')  # Adjust based on how discounts are stored
+            original_total=Sum(F('items__price') * F('items__quantity'), output_field=DecimalField()),
+            discounted_price=F('final_price'), 
+            annotated_total_discount=F('total_discount')  
         )
     )
 
     # Calculate overall report values
     total_sales_count = orders.count()
-    total_order_amount = orders.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    total_order_amount = orders.aggregate(Sum('original_total'))['original_total__sum'] or 0
+    total_discount_amount = orders.aggregate(Sum('annotated_total_discount'))['annotated_total_discount__sum'] or 0
 
     context = {
         'orders': orders,
         'total_sales_count': total_sales_count,
         'total_order_amount': total_order_amount,
+        'total_discount_amount': total_discount_amount,  # Add total discount amount to context
         'start_date': start_date,
         'end_date': end_date,
         'report_type': report_type,
     }
 
     return render(request, 'sales_report/sales_report.html', context)
+
 
 def generate_pdf_report(request):
     # Query the necessary orders for the report
@@ -89,25 +97,62 @@ def generate_pdf_report(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="sales_report.pdf"'
 
-    # Generate the PDF
-    p = canvas.Canvas(response, pagesize=letter)
-    p.drawString(100, 750, "Sales Report")
-    p.drawString(100, 730, "Order ID | Status | Total Amount | Discount | Date")
+    # Create the PDF document
+    doc = SimpleDocTemplate(response, pagesize=letter)
+    elements = []
 
-    # Loop through orders and add details to the PDF
-    y_position = 710
-    for order in orders:
+    # Add a title
+    styles = getSampleStyleSheet()
+    title = Paragraph("<b>Sales Report</b>", styles['Title'])
+    subtitle = Paragraph("Generated on: " + timezone.now().strftime("%Y-%m-%d %H:%M:%S"), styles['Normal'])
+    elements.append(title)
+    elements.append(subtitle)
+    elements.append(Paragraph("<br/>", styles['Normal']))  # Add spacing
+
+    # Define the table data
+    data = [["Order ID", "Status", "Total Amount", "Date"]]
+    for order_index, order in enumerate(orders):
         total_amount = order.total_amount()
-        discount = order.coupon.discount_amount if order.coupon else 0
-        line = f"{order.id} | {order.status} | {total_amount} | {discount} | {order.created_at}"
-        p.drawString(100, y_position, line)
-        y_position -= 20
+        discount = order.total_discount
+        row_data = [
+            order.id, 
+            order.status, 
+            f"${total_amount:.2f}", 
+            order.created_at.strftime("%Y-%m-%d")
+        ]
+        data.append(row_data)
 
-    # Save the PDF to response
-    p.showPage()
-    p.save()
+    # Create the table
+    table = Table(data, colWidths=[80, 100, 100, 100, 120])
+
+    # Define the table style
+    table.setStyle(TableStyle([
+        # Header style
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#003366')),  # Dark Blue Header
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),  # White Text
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  # Bold Header
+        ('FONTSIZE', (0, 0), (-1, 0), 12),  # Larger Font Size
+        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),  # Center align header text
+
+        # Row styles
+        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#f2f2f2')),  # Default Light Grey
+        ('BACKGROUND', (0, 2), (-1, -1), colors.white),  # Alternate White Rows
+        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),  # Black Text
+
+        # Grid lines
+        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#336699')),  # Medium Blue Grid
+
+        # Alignment and padding
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),  # Center align all text
+        ('FONTSIZE', (0, 1), (-1, -1), 10),  # Regular Font Size
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 10),  # Padding for header row
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 8),  # Padding for data rows
+    ]))
+    elements.append(table)
+
+    # Build the PDF
+    doc.build(elements)
     return response
-
 
 
 def generate_excel_report(request):
@@ -163,8 +208,6 @@ def generate_excel_report(request):
     response['Content-Disposition'] = 'attachment; filename="orders_report.xlsx"'
 
     return response
-
-
 
 
 def download_invoice(request, order_id):

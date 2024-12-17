@@ -112,11 +112,13 @@ def apply_coupon(request):
 
         # Calculate the coupon discount and the final total
         coupon_discount_amount = coupon.get_discount_amount(offer_total)
+        total_discount = coupon_discount_amount + offer_discount_amount
         coupon_discount_amount = min(coupon_discount_amount, offer_total)  # Cap discount at offer total
         final_total = offer_total - coupon_discount_amount
 
         # Save the applied coupon to the cart
         user_cart.coupon = coupon
+        user_cart.total_discount = total_discount
         user_cart.final_price = final_total
         user_cart.save()
 

@@ -67,6 +67,7 @@ class Order(models.Model):
     return_reason = models.CharField(max_length=255, null=True, blank=True)
     coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
     final_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    total_discount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  
 
     def save(self, *args, **kwargs):
         # Ensure a unique order ID is generated only for new orders

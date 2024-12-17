@@ -1,138 +1,150 @@
 {% extends "user_home/main.html" %}
 {% block content %}
 
-<div class="container mt-5">
-    <div class="order-success text-center">
-        <!-- Success Message with Icon -->
-        <div class="alert alert-success py-4 shadow-sm">
-            <i class="fas fa-check-circle fa-3x mb-3 text-success"></i>
-            <h2 class="text-success">Thank You for Your Order!</h2>
-            <p class="lead">Your order has been placed successfully. A confirmation email is on its way.</p>
+<div class="container py-5">
+    <!-- Success Section -->
+    <div class="text-center mb-5">
+        <div class="order-success bg-light py-5 rounded shadow">
+            <i class="fas fa-check-circle fa-4x text-primary mb-3"></i>
+            <h1 class="text-navy">Thank You!</h1>
+            <p class="lead text-muted">Your order has been successfully placed. A confirmation email is on its way.</p>
         </div>
+    </div>
 
-        <!-- Order Summary Section -->
-        <div class="order-summary mt-5">
-            <h3 class="text-uppercase font-weight-bold">Order Summary</h3>
-            <div class="card shadow-lg border-0 mb-5">
-                <div class="card-body py-4">
-                    <div class="order-details mb-3">
-                        <p><strong>Order ID:</strong> <span class="text-muted">{{ order.id }}</span></p>
-                        <p><strong>Status:</strong> <span class="badge badge-info">{{ order.status }}</span></p>
+    <!-- Order Summary -->
+    <div class="order-summary mb-5">
+        <div class="text-center mb-4">
+            <h2 class="text-navy">Order Summary</h2>
+            <hr class="w-25 mx-auto border-navy">
+        </div>
+        <div class="card border-0 shadow-lg">
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p><strong>Order ID:</strong> <span class="text-navy">{{ order.id }}</span></p>
+                        <p><strong>Status:</strong> 
+                            <span class="badge badge-info px-3 py-2">{{ order.status }}</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6 text-md-right">
+                        <p><strong>Date:</strong> {{ order.created_at|date:"M d, Y" }}</p>
                         <p><strong>Payment Status:</strong> 
-                            {% if order.payment_status|lower == 'completed' %}
-                                <span class="badge badge-success">{{ order.payment_status }}</span>
+                            {% if order.payment_details.payment_status|lower == 'completed' %}
+                                <span class="badge badge-success px-3 py-2">{{ order.payment_details.payment_status }}</span>
                             {% else %}
-                                <span class="badge badge-warning">{{ order.payment_status }}</span>
+                                <span class="badge badge-warning px-3 py-2">{{ order.payment_details.payment_status }}</span>
                             {% endif %}
                         </p>
-                        
-                        <p><strong>Date:</strong> <span class="text-muted">{{ order.created_at|date:"M d, Y" }}</span></p>
                     </div>
+                </div>
 
-                    <!-- Order Items Section -->
-                    <h4 class="text-dark mt-4">Items in Your Order:</h4>
-                    <div class="order-items">
-                        {% for item in order.items.all %}
-                            <div class="order-item mb-4 p-3 bg-light rounded shadow-sm">
-                                <div class="row align-items-center">
-                                    <div class="col-md-6">
-                                        <p class="mb-1"><strong>Product:</strong> {{ item.variant.product.name }}</p>
-                                    </div>
-                                    <div class="col-md-3 text-right">
-                                        <p class="mb-1"><strong>Quantity:</strong> {{ item.quantity }}</p>
-                                        <p class="mb-1 text-success"><strong>Price:</strong> ₹{{ item.variant.price }}</p>
-                                    </div>
-                                </div>
+                <!-- Order Items -->
+                <h4 class="text-uppercase mb-3 text-navy">Items in Your Order</h4>
+                {% for item in order.items.all %}
+                    <div class="order-item p-3 mb-3 rounded bg-white shadow-sm">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h5 class="mb-1 text-navy">{{ item.variant.product.name }}</h5>
+                                <p class="text-muted mb-0">Quantity: {{ item.quantity }}</p>
                             </div>
-                        {% empty %}
-                            <p class="text-muted">No items found.</p>
-                        {% endfor %}
+                            <div class="col-md-4 text-right">
+                                <h6 class="text-navy">₹{{ item.variant.price }}</h6>
+                            </div>
+                        </div>
                     </div>
+                {% empty %}
+                    <p class="text-muted">No items found.</p>
+                {% endfor %}
 
-                    <!-- Total Amount Section -->
-                    <div class="total-amount mt-4">
-                        <h4 class="text-dark"><strong>Total Amount to Pay:</strong> <span class="text-success">₹{{total_price}}</span></h4>
-                    </div>
+                <!-- Total Amount -->
+                <div class="mt-4">
+                    <h3 class="text-dark font-weight-bold">Total: <span class="text-navy">₹{{ total_price }}</span></h3>
                 </div>
             </div>
         </div>
+    </div>
 
-<!-- Conditional Payment Button for Pending Payment -->
-{% if order.payment_details.payment_status.status != 'Completed' %}
-    <div class="alert alert-warning mt-4 py-3 shadow-sm">
-        <i class="fas fa-exclamation-circle fa-2x mb-2 text-warning"></i>
-        <p class="lead">Your payment is pending. Complete the payment to confirm your order.</p>
-        <p>Order ID: {{ order.id }}</p>
-
-        <a href="{% url 'complete_payment' order.id %}" class="btn btn-success">Complete Payment</a>
+    <!-- Payment Status -->
+    {% if order.payment_details.payment_status|lower != "completed" and order.payment_details.payment_status|lower != "refund" and order.status|lower != "cancelled" and order.status|lower != "returned" %}
+    <!-- Complete Payment Option -->
+    <form method="post" action="{% url 'complete_payment' order.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-lg btn-info shadow-lg px-5 mt-3">
             <i class="fas fa-credit-card"></i> Complete Payment
-        </a>
-    </div>
-{% else %}
-    <div class="alert alert-success mt-4 py-3 shadow-sm">
-        <i class="fas fa-check-circle fa-2x mb-2 text-success"></i>
-        <p class="lead">Thank you! Your payment has been successfully completed. Your order is confirmed.</p>
-    </div>
-{% endif %}
-
-
-        <!-- Continue Shopping Button -->
-        <div class="mt-4">
-            <a href="{% url 'shop' %}" class="btn btn-lg btn-primary shadow-lg px-5">
-                <i class="fas fa-shopping-cart"></i> Continue Shopping
-            </a>
+        </button>
+    </form>
+    {% else %}
+        <div class="alert alert-navy text-center mt-4 shadow-sm">
+            <i class="fas fa-check-circle fa-2x text-navy mb-3"></i>
+            <p class="lead">Your payment has been completed successfully. Thank you for shopping with us!</p>
         </div>
+    {% endif %}
+
+    <!-- Continue Shopping Button -->
+    <div class="text-center mt-5">
+        <a href="{% url 'shop' %}" class="btn btn-navy btn-lg px-5 shadow">
+            <i class="fas fa-shopping-cart"></i> Continue Shopping
+        </a>
     </div>
 </div>
 
 <style>
-    .order-success h2, .order-success p {
+    body {
         font-family: 'Poppins', sans-serif;
+        background-color: #f8f9fa;
+    }
+
+    .text-navy {
+        color: #2c3e50 !important;
+    }
+
+    .btn-navy {
+        background-color: #2c3e50;
+        color: #ffffff;
+        border: none;
+        border-radius: 50px;
+    }
+
+    .btn-navy:hover {
+        background-color: #243442;
+    }
+
+    .order-success {
+        background: #eaf2f8;
+        border: 2px solid #2c3e50;
+    }
+
+    .order-item {
+        transition: transform 0.2s ease, box-shadow 0.3s ease;
+    }
+
+    .order-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .badge-info {
+        background-color: #2c3e50;
+    }
+
+    .alert-navy {
+        background-color: #eaf2f8;
+        border: 1px solid #2c3e50;
+        color: #2c3e50;
+    }
+
+    hr {
+        border: 1px solid #2c3e50;
+    }
+
+    h2, h3, h4, h5 {
+        font-weight: bold;
+        color: #2c3e50;
     }
 
     .card {
         border-radius: 15px;
         overflow: hidden;
-    }
-
-    .btn-primary {
-        background-color: #0069D9;
-        border: none;
-        border-radius: 50px;
-    }
-
-    .btn-primary:hover {
-        background-color: #004AAD;
-    }
-
-    .btn-success {
-        background-color: #28a745;
-        border: none;
-        border-radius: 50px;
-    }
-
-    .btn-success:hover {
-        background-color: #218838;
-    }
-
-    .order-items .order-item {
-        transition: all 0.3s ease-in-out;
-    }
-
-    .order-items .order-item:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .total-amount {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #28a745;
-    }
-
-    .alert-warning {
-        font-family: 'Poppins', sans-serif;
-        border-radius: 15px;
     }
 </style>
 
