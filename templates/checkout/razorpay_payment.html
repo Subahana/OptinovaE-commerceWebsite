@@ -7,10 +7,69 @@
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <meta name="csrf-token" content="{{ csrf_token }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #476693, #004d99);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .payment-container {
+            background: #fff;
+            color: #333;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #004d99;
+        }
+
+        #rzp-button1 {
+            background: #0099ff;
+            color: #fff;
+            font-size: 18px;
+            font-weight: 500;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 153, 255, 0.4);
+            transition: all 0.3s ease-in-out;
+        }
+
+        #rzp-button1:hover {
+            background: #173a75;
+            box-shadow: 0 8px 20px rgba(0, 153, 255, 0.6);
+        }
+
+        .description {
+            font-size: 16px;
+            margin-bottom: 30px;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
-    <h1>Complete Your Payment</h1>
-    <button id="rzp-button1">Pay with Razorpay</button>
+    <div class="payment-container">
+        <h1>Complete Your Payment</h1>
+        <button id="rzp-button1"> >>> Pay with Razorpay</button>
+    </div>
     
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
@@ -70,7 +129,6 @@
         rzp1.on('payment.failed', function (response) {
     console.error("Payment Failed:", response);
 
-    // Extract error details
     const failureDetails = {
         error_code: response.error.code,
         error_description: response.error.description,
@@ -81,8 +139,18 @@
         payment_id: response.error.metadata.payment_id,
     };
 
-    alert(`Payment failed: ${failureDetails.error_description}`);
-    window.location.href = `/checkout/payment_error?order_id=${order_id}`;
+    axios.post('/order_management/verify_razorpay_payment/' + OrderId + '/', failureDetails, {
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        }
+    }).then((res) => {
+        console.log("Failure handled:", res.data);
+        window.location.href = `/order_management/handle_payment_failure/${order_id}`;
+    }).catch((err) => {
+        console.error("Error handling failure:", err);
+        alert("Failed to process payment failure. Please contact support.");
+    });
 });
 
     </script>

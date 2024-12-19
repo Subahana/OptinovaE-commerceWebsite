@@ -72,10 +72,16 @@
                 <span class="value">₹{{ total_price_order|floatformat:2 }}</span>
             </div>
         </div>
+        {% if order.status|lower == "delivered" or order.status|lower == "returned"%}
         <div>
             <a href="{% url 'download_invoice' order.id %}" class="btn btn-info">Download Invoice</a>
         </div>
-
+        {% else %}
+        <div class="alert alert-info mt-4">
+            <i class="fas fa-info-circle"></i>
+            <p>Your order was under <span class="value">{{ order.status }}</span></p>
+        </div>
+        {% endif %}
         {% if order.status|lower == "cancelled" %}
         <div class="alert alert-danger mt-4">
             <i class="fas fa-info-circle"></i>
@@ -90,7 +96,7 @@
         <div class="order-actions text-center mt-4">
             <!-- Cancel Order Option -->
             {% if order.status|lower == "pending" or order.status|lower == "processing" %}
-                {% if order.payment_details.payment_status|lower == "pending" %}
+                {% if order.payment_details.payment_status|lower == "pending" or order.payment_details.payment_status|lower == "failed" or order.payment_details.payment_status|lower == "failed>" %}
                     <!-- Cancel Order Option -->
                     <form method="post" action="{% url 'cancel_order' order.id %}" class="d-inline" id="cancelOrderForm">
                         {% csrf_token %}
@@ -198,7 +204,7 @@
                             </div>
                         </div>
                     </div>
-                    {% elif order.payment_details.payment_status|lower == "complete" %}
+                    {% elif order.payment_details.payment_status|lower == "completed" %}
                     <!-- Return with Refund Option -->
                     <button type="button" class="btn btn-warning btn-lg" data-toggle="modal" data-target="#returnOrderWithRefundModal">
                         <i class="fas fa-undo"></i> Return with Refund

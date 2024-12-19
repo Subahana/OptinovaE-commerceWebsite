@@ -18,7 +18,7 @@ import logging
 from urllib.parse import parse_qs
 from user_wallet.models import WalletTransaction
 from user_wallet.wallet_utils import debit_wallet ,credit_wallet ,process_refund_to_wallet,ensure_wallet_exists
-from .checkout_utils import handle_cod_payment, handle_wallet_payment, handle_razorpay_payment, handle_address_selection
+from .checkout_utils import handle_cod_payment, handle_wallet_payment, handle_razorpay_payment, handle_address_selection,complete_razorpay_payment,complete_wallet_payment
 from sales_report.sales_utils import send_invoice_email
 import uuid
 from django.contrib.auth import login, get_backends
@@ -141,7 +141,7 @@ class VerifyRazorpayPayment(View):
 
         # Update order payment status
         order = get_object_or_404(Order, id=order_id)
-        payment_failed_status, _ = PaymentStatus.objects.get_or_create(status='payment_failed')
+        payment_failed_status, _ = PaymentStatus.objects.get_or_create(status='Failed')
         order.payment_details.payment_status = payment_failed_status
         order.payment_details.save()
         order.save()
@@ -174,8 +174,6 @@ def razorpay_order_success(request, order_id):
     try:
         order = get_object_or_404(Order, id=order_id)
         user = order.user
-        send_invoice_email(order)
-
         # Calculate the total price using the `total_amount` method
         total_price = order.final_price
         # Set the order status to 'Processing'
@@ -199,53 +197,67 @@ def razorpay_order_success(request, order_id):
         logger.error(f"No Order matches the given query for order_id: {order_id}")
         return JsonResponse({'error': 'Order not found'}, status=404)
 
-def handle_payment_failure(request,order_id):
-    # Extract data from the request
-   
-    # Redirect to a retry payment page or show an error page
-    return render(request, 'checkout/payment_error.html', {
-        'error_message': "Your payment was not successful. Please try again.",
-    })
+@login_required(login_url='accounts:user_login_view')
+def handle_payment_failure(request, order_id):
+    try:
+        # Retrieve the order by ID
+        order = get_object_or_404(Order, id=order_id)
+        user = order.user
+        total_price = order.final_price
+
+        # Update order payment date or status as needed
+        order.payment_date = timezone.now()
+        order.save()
+
+        # Clear the user's cart
+        CartItem.objects.filter(cart__user=user).delete()
+
+        # Render the payment error page
+        return render(request, 'checkout/razorpay_order_success.html', {
+            'order': order,
+            'total_price': total_price,
+            'error_message': "Your payment was not successful. Please try again.",
+        })
+
+    except Order.DoesNotExist:
+        # Handle cases where the order does not exist
+        return render(request, 'checkout/payment_error.html', {
+            'error_message': "Order not found. Please try again.",
+        })
 
 @login_required(login_url='accounts:user_login_view')
 def complete_payment(request, order_id):
-    """
-    Complete the payment for an already created order and update payment status.
-    """
+    """Complete payment after user selects a payment method (Wallet or Razorpay)."""  
+    # Fetch the order based on order_id
     try:
-        # Fetch the order for the logged-in user
-        order = get_object_or_404(Order, id=order_id, user=request.user)
+        order = Order.objects.get(id=order_id)
+    except Order.DoesNotExist:
+        messages.error(request, "Order not found!")
+        return redirect('order_list')  # Redirect to orders list page
+    
+    # Check if the payment status is already completed
+    if order.payment_details.payment_status.status == 'Completed':
+        messages.info(request, "This order has already been paid.")
+        return redirect('order_details', order_id=order_id)  # Redirect to order details page
 
-        if request.method == "POST":
-            payment_method = request.POST.get("payment_method")
-                # Update or create payment details for the order
-            if not order.payment_details:
-                # If payment details do not exist, create new PaymentDetails
-                payment_status = PaymentStatus.objects.get_or_create(status="Completed")[0]
-                payment_details = PaymentDetails.objects.create(
-                    payment_method=payment_method,
-                    payment_status=payment_status
-                )
-                order.payment_details = payment_details
-            else:
-                # Update existing PaymentDetails
-                payment_status = PaymentStatus.objects.get_or_create(status="Completed")[0]
-                order.payment_details.payment_method = payment_method
-                order.payment_details.payment_status = payment_status
-                order.payment_details.save()
+    # Fetch payment status
+    payment_status = PaymentStatus.objects.filter(status="Pending").first()
+    
+    # Handle POST request (when user selects payment method)
+    if request.method == 'POST':
+        payment_method = request.POST.get('payment_method')  # Get selected payment method (wallet or razorpay)
 
-            # Save the updated order
-            order.save()
+        if payment_method == 'wallet':
+            return complete_wallet_payment(request, order)
 
-            messages.success(request, "Payment completed successfully.")
-            return redirect(reverse('razorpay_order_success', args=[order.id]))
+        elif payment_method == 'razorpay':
+            return complete_razorpay_payment(request, order)
 
-        # Render the payment completion page if GET request
-        return render(request, 'checkout/complete_payment.html', {'order': order})
-
-    except Exception as e:
-        messages.error(request, f"An error occurred: {str(e)}")
-        return redirect(reverse('handle_payment_failure', args=[order_id]))
+    # Render the payment method selection page (if GET request)
+    return render(request, 'checkout/complete_payment.html', {
+        'order': order,
+        'total_price': order.final_price,
+    })
 
 @login_required(login_url='accounts:user_login_view')
 def cod_order_success(request, order_id):
@@ -257,7 +269,7 @@ def cod_order_success(request, order_id):
     CartItem.objects.filter(cart__user=request.user).delete()
     final_price = order.final_price  # Assuming final_price is a field in your Order model
 
-    return render(request, 'checkout/cod_order_success.html', {
+    return render(request, 'checkout/razorpay_order_success.html', {
         'order': order,
         'total_price':final_price,
         'payment_status': "Cash on Delivery",
@@ -315,10 +327,11 @@ def update_order_status(request, order_id):
                 order.status = delivered_status
                                 # Update payment status to 'Complete'
                 if order.payment_details:
-                    complete_status, _ = PaymentStatus.objects.get_or_create(status="Complete")
+                    complete_status= PaymentStatus.objects.filter(status="Completed").first()
                     order.payment_details.payment_status = complete_status
                     order.payment_details.save()
 
+                send_invoice_email(order)
                 order.save()
                 messages.success(request, f"Order #{order.order_id} status updated to 'Delivered'.")
             
@@ -335,17 +348,13 @@ def update_order_status(request, order_id):
                     process_refund_to_wallet(order)
 
                     # Update payment status to 'Refund' and process refund
-                    refund_status, _ = PaymentStatus.objects.get_or_create(status="Refund")
+                    refund_status = PaymentStatus.objects.filter(status="Refunded").first()
                     order.payment_details.payment_status = refund_status
                     order.payment_details.save()
 
                     # Process refund logic
                 else:
-                    # Handle the case where payment is not completed
-                    # You could log a message or handle it in another way if needed
                     pass
-
-                    # Save the order after the changes
                 order.save()
 
 
@@ -368,8 +377,7 @@ def cancel_order(request, order_id):
 
     # Ensure cancellation is allowed based on status
     if order.status.status.lower() in ["pending", "processing"] and \
-       (not order.payment_details or order.payment_details.payment_status.status.lower() == "pending"):
-        print(order)
+       (not order.payment_details or order.payment_details.payment_status.status.lower() in [ "pending","failed"]):
         if request.method == "POST":
             cancellation_reason = request.POST.get("cancel_reason")
             print(cancellation_reason)
@@ -513,43 +521,3 @@ def return_order_with_refund(request, order_id):
         messages.error(request, "You cannot return this order at this stage.")
         return redirect('order_details', order_id=order.id)
 
-def return_order(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
-
-    # Debugging: Log the current order status
-    logger.debug(f"Order ID: {order.id}, Current Status: {order.status.status}")
-
-    if order.status.status.lower() == "delivered" and \
-       (not order.payment_details or order.payment_details.payment_status.status.lower() == "pending"):
-
-        if request.method == "POST":
-            return_reason = request.POST.get("return_reason")
-            logger.debug(f"Return Reason: {return_reason}")  # Log the return reason
-
-            if not return_reason:
-                messages.error(request, "Return reason is required.")
-                return redirect('order_details', order_id=order.id)
-
-            # Proceed with return
-            try:
-                order.is_returned = True
-                order.return_reason = return_reason
-                order.returned_at = timezone.now()
-
-                # Debugging: Log order details after return
-                logger.debug(f"Order Updated - ID: {order.id}, is_returned: {order.is_returned}")
-
-                # Save order
-                order.save()
-
-                messages.success(request, "Your order has been successfully returned.")
-                return redirect('my_orders')
-
-            except Exception as e:
-                logger.error(f"Error processing return: {e}")
-                messages.error(request, "There was an error processing the return.")
-                return redirect('order_details', order_id=order.id)
-
-    else:
-        messages.error(request, "You cannot return this order at this stage.")
-        return redirect('order_details', order_id=order.id)

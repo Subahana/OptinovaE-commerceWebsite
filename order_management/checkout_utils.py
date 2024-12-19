@@ -25,7 +25,6 @@ def handle_address_selection(form, user):
     return get_object_or_404(Address, id=address_id)
 
 
-# Helper function to create order and its items
 def create_order_and_items(user, address, payment_details, cart_items, total_price, coupon, total_discount):
     """Create an order and associated order items."""
     with transaction.atomic():
@@ -47,10 +46,12 @@ def create_order_and_items(user, address, payment_details, cart_items, total_pri
 
 # ----------------------- Payment Methods -----------------------
 
-# Handle Cash on Delivery (COD) Payment
 def handle_cod_payment(request, cart_items, address, total_price, coupon,total_discount):
     """Handle Cash on Delivery payment method."""
-    payment_status, _ = PaymentStatus.objects.get_or_create(status="Pending")
+    payment_status = PaymentStatus.objects.filter(status="Pending").first()
+    if not payment_status:
+        payment_status = PaymentStatus.objects.create(status="Pending")
+    
     payment_details = PaymentDetails.objects.create(
         payment_method="COD",
         payment_status=payment_status
@@ -64,7 +65,6 @@ def handle_cod_payment(request, cart_items, address, total_price, coupon,total_d
     return redirect('cod_order_success', order_id=order.id)  # Update with your success URL name
 
 
-# Handle Wallet Payment
 def handle_wallet_payment(request, cart_items, address, total_price, coupon,total_discount):
     """Handle wallet payment method."""
     wallet = ensure_wallet_exists(request.user)  # Helper function to get user's wallet
@@ -74,7 +74,9 @@ def handle_wallet_payment(request, cart_items, address, total_price, coupon,tota
         debit_wallet(request.user, total_price, "Order Payment via Wallet")
 
         # Update payment status to Completed
-        payment_status, _ = PaymentStatus.objects.get_or_create(status="Completed")
+        payment_status = PaymentStatus.objects.filter(status="Completed").first()
+        if not payment_status:
+            payment_status = PaymentStatus.objects.create(status="Completed")
         payment_details = PaymentDetails.objects.create(
             payment_method="Wallet",
             payment_status=payment_status
@@ -95,10 +97,11 @@ def handle_wallet_payment(request, cart_items, address, total_price, coupon,tota
     return redirect('checkout')  # Redirect back to the checkout page
 
 
-# Handle Razorpay Payment
 def handle_razorpay_payment(request, cart_items, address, total_price, coupon,total_discount):
     """Handle Razorpay payment method."""
-    payment_status, _ = PaymentStatus.objects.get_or_create(status="Pending")
+    payment_status = PaymentStatus.objects.filter(status="Pending").first()
+    if not payment_status:
+        payment_status = PaymentStatus.objects.create(status="Pending")
     payment_details = PaymentDetails.objects.create(
         payment_method="Razorpay",
         payment_status=payment_status
@@ -125,6 +128,59 @@ def handle_razorpay_payment(request, cart_items, address, total_price, coupon,to
         'razorpay_order_id': razorpay_order['id'],
         'razorpay_key': settings.RAZOR_PAY_KEY_ID,
         'total_price': total_price * 100,  # Razorpay expects price in paise
+        'user_email': request.user.email,
+        'user_name': request.user.get_full_name(),
+    })
+
+
+def complete_wallet_payment(request, order):
+    """Handle wallet payment method for existing order."""
+    wallet = ensure_wallet_exists(request.user)  # Helper function to get user's wallet
+
+    if wallet.balance >= order.final_price:
+        # Deduct amount from wallet
+        debit_wallet(request.user, order.final_price, "Order Payment via Wallet")
+
+        # Update payment status to Completed
+        payment_status = PaymentStatus.objects.filter(status="Completed").first()
+        if not payment_status:
+            payment_status = PaymentStatus.objects.create(status="Completed")
+        
+        # Update payment details for the order
+        order.payment_details.payment_status = payment_status
+        order.payment_details.save()
+
+        # Redirect to order success page
+        messages.success(request, "Order placed successfully using Wallet!")
+        return redirect('order_details', order_id=order.id)
+
+    # Insufficient wallet balance
+    messages.error(request, "Insufficient wallet balance. Please select another payment method.",extra_tags="complete")
+    return redirect('complete_payment', order_id=order.id)  # Redirect back to payment selection page
+
+
+def complete_razorpay_payment(request, order):
+    """Handle Razorpay payment method for existing order."""
+    # Initialize Razorpay client
+    razorpay_client = razorpay.Client(auth=(settings.RAZOR_PAY_KEY_ID, settings.RAZOR_PAY_KEY_SECRET))
+    
+    # Create Razorpay order
+    razorpay_order = razorpay_client.order.create({
+        "amount": int(order.final_price * 100),  # Amount in paise
+        "currency": "INR",
+        "payment_capture": 1
+    })
+
+    # Update order with Razorpay order ID
+    order.razorpay_order_id = razorpay_order['id']
+    order.save()
+
+    # Render Razorpay payment page
+    return render(request, 'checkout/razorpay_payment.html', {
+        'order': order,
+        'razorpay_order_id': razorpay_order['id'],
+        'razorpay_key': settings.RAZOR_PAY_KEY_ID,
+        'total_price': order.final_price * 100,  # Razorpay expects price in paise
         'user_email': request.user.email,
         'user_name': request.user.get_full_name(),
     })

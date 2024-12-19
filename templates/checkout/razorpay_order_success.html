@@ -21,7 +21,7 @@
             <div class="card-body">
                 <div class="row mb-4">
                     <div class="col-md-6">
-                        <p><strong>Order ID:</strong> <span class="text-navy">{{ order.id }}</span></p>
+                        <p><strong>Order ID:</strong> <span class="text-navy">{{ order.order_id }}</span></p>
                         <p><strong>Status:</strong> 
                             <span class="badge badge-info px-3 py-2">{{ order.status }}</span>
                         </p>
@@ -31,6 +31,8 @@
                         <p><strong>Payment Status:</strong> 
                             {% if order.payment_details.payment_status|lower == 'completed' %}
                                 <span class="badge badge-success px-3 py-2">{{ order.payment_details.payment_status }}</span>
+                            {% elif order.payment_details.payment_status|lower == 'failed' %}
+                                <span class="badge badge-danger px-3 py-2">{{ order.payment_details.payment_status }}</span>
                             {% else %}
                                 <span class="badge badge-warning px-3 py-2">{{ order.payment_details.payment_status }}</span>
                             {% endif %}
@@ -43,7 +45,10 @@
                 {% for item in order.items.all %}
                     <div class="order-item p-3 mb-3 rounded bg-white shadow-sm">
                         <div class="row align-items-center">
-                            <div class="col-md-8">
+                            <div class="col-md-2 p-5">
+                                <img src="{{ item.variant.images.first.image.url }}" alt="{{ item.variant.product.name }}">
+                            </div>
+                            <div class="col-md-6">
                                 <h5 class="mb-1 text-navy">{{ item.variant.product.name }}</h5>
                                 <p class="text-muted mb-0">Quantity: {{ item.quantity }}</p>
                             </div>
@@ -69,7 +74,7 @@
     <!-- Complete Payment Option -->
     <form method="post" action="{% url 'complete_payment' order.id %}">
         {% csrf_token %}
-        <button type="submit" class="btn btn-lg btn-navy shadow-lg px-5 mt-3">
+        <button type="submit" class="btn btn-lg btn-info shadow-lg px-5 mt-3">
             <i class="fas fa-credit-card"></i> Complete Payment
         </button>
     </form>

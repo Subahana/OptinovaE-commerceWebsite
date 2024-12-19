@@ -148,7 +148,7 @@ def my_orders(request):
         # Add the payment method and payment status
         if order.payment_details:
             order.payment_method = order.payment_details.payment_method
-            order.payment_status = order.payment_details.payment_status.status
+            order.payment_status = order.payment_details.payment_status
             order.order_status = order.status.status
             if order.payment_details.payment_method == 'razorpay':
                 order.razorpay_order_id = order.payment_details.razorpay_order_id
@@ -156,7 +156,8 @@ def my_orders(request):
         else:
             order.payment_method = 'Not Provided'
             order.payment_status = 'Pending'
-
+    first_item = order.items.first()  # Fetch the first item from the order
+    print(first_item)
     # Pagination (5 orders per page)
     paginator = Paginator(orders, 5)
     page_number = request.GET.get('page')
@@ -164,6 +165,7 @@ def my_orders(request):
 
     return render(request, 'user_profile/my_orders.html', {
         'page_obj': page_obj,
+        'first_item': first_item,
         'query': query
     })
 
