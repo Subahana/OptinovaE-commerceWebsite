@@ -399,8 +399,10 @@
                 addToCartForm.action = `/cart_management/add_to_cart/${variantId}/`;
             });
         });
-
-
+// Automatically select the first variant on page load
+if (variantItems.length > 0) {
+    variantItems[0].click();
+}
         // Decrement button
         document.getElementById('decrement-btn').addEventListener('click', function () {
             changeQuantity(-1);
@@ -432,7 +434,7 @@
             const quantity = quantityInput.value;
 
             // Basic validation for quantity
-            if (!quantity || quantity <= 0 || quantity > quantityInput.max) {
+            if (!quantity || quantity <= 0 ) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Invalid Quantity',
@@ -486,6 +488,7 @@
             });
         });
     });
+    
 </script>
 
 {% endblock %}

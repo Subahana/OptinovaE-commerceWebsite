@@ -452,7 +452,7 @@ def cancel_order_with_refund(request, order_id):
                 process_refund_to_wallet(order)
                 # Update the payment status to 'Refund'
                 if order.payment_details:
-                    returned_status, _ = PaymentStatus.objects.get_or_create(status='Refund')
+                    returned_status, _ = PaymentStatus.objects.get_or_create(status='Refunded')
                     order.payment_details.payment_status = returned_status
                     order.payment_details.save()
                 #Refund Process
@@ -477,7 +477,7 @@ def return_order_with_refund(request, order_id):
     logger.debug(f"Order ID: {order.id}, Current Status: {order.status.status}, Payment Status: {order.payment_details.payment_status.status if order.payment_details else 'No Payment Details'}")
     print('befor')
     # Ensure return is allowed based on order status
-    if order.status.status.lower() == "delivered" and order.payment_details.payment_status.status.lower() == "complete":
+    if order.status.status.lower() == "delivered" and order.payment_details.payment_status.status.lower() == "completed":
         print('yes')
 
         if request.method == "POST":
@@ -503,7 +503,9 @@ def return_order_with_refund(request, order_id):
                 # Process the refund to wallet (assuming this is a defined method)
                 process_refund_to_wallet(order)
                 if order.payment_details:
-                    returned_status, _ = PaymentStatus.objects.get_or_create(status='Refund to Wallet')
+                    returned_status = PaymentStatus.objects.filter(status='Refunded').first()
+                    if not returned_status:
+                        returned_status = PaymentStatus.objects.create(status="Refunded")
                     order.payment_details.payment_status = returned_status
                     order.payment_details.save()
                 # Save order

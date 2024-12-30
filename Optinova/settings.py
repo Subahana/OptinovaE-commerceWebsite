@@ -160,3 +160,6 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Use database-backed se
 SESSION_COOKIE_SECURE = True  # Use secure cookies if you're using HTTPS
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Session does not expire when the browser closes
 CSRF_COOKIE_SECURE = True
+
+TIME_ZONE = 'UTC'  # Or your desired time zone, e.g., 'Asia/Kolkata'
+USE_TZ = True      # Enable time zone support

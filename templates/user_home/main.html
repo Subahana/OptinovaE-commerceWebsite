@@ -112,10 +112,13 @@
                     <nav class="header__menu mobile-menu">
                         <ul>
                             <li class="{% if request.path == '/' %}active{% endif %}">
-                                <a href="{% url 'user_home' %}">Home</a>
+                                <a href="{% url 'user_home' %}"style="color: #003366;">Home</a>
                             </li>
                             <li class="{% if request.path == '/shop/' %}active{% endif %}">
-                                <a href="{% url 'shop' %}">Shop</a>
+                                <a href="{% url 'shop' %}"style="color: #003366;">Shop</a>
+                            </li>
+                            <li class="{% if request.path == '/shop/' %}active{% endif %}">
+                                <a href="{% url 'about_us' %}" style="color: #003366;">About Us</a>
                             </li>
                         </ul>
                     </nav>
@@ -158,9 +161,7 @@
                 <h5 class="font-weight-bold mb-3">Quick Links</h5>
                 <ul class="list-unstyled">
                     <li><a href="{% url 'shop' %}" class="text-white">Shop</a></li>
-                    <li><a href="#" class="text-white">Contact Us</a></li>
-                    <li><a href="#" class="text-white">About Us</a></li>
-                    <li><a href="#" class="text-white">FAQ</a></li>
+                    <li><a href="{% url 'about_us' %}" class="text-white">About Us</a></li>
                 </ul>
             </div>
 

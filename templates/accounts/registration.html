@@ -2,28 +2,18 @@
 {% load static %}
 
 {% block content %}
-<section>
-    <div class="bg-image">
-        <div class="card custom-card mt-5">
+<div class="row d-flex justify-content-center align-items-center" style = "background-color: rgb(206, 230, 255);">
+    <div class="col-12 col-md-8 col-lg-6 col-xl-5">
             <div class="card-body">
-                
                 <!-- Centered Logo -->
                 <div class="d-flex justify-content-center mb-4">
                     <img src="{% static 'img/optinova_logo.png' %}" alt="Optinova Logo" class="img-fluid" style="max-width: 150px;">
                 </div>
                 
-                <h2 class="text-uppercase text-center mb-4">Create an account</h2>
+                <h2 class="text-uppercase text-center mb-4 text-dark">Create an account</h2>
                 
                 <form method="POST">
                     {% csrf_token %}
-                    
-                    {% if messages %}
-                    <div class="alert">
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
 
                     <div class="form-outline mb-3">
                         <input type="text" placeholder="Username" id="form3Example1cg" name="username" class="form-control form-control-lg" required />
@@ -88,5 +78,4 @@
             </div>
         </div>
     </div>
-</section>
 {% endblock %}

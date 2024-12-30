@@ -43,7 +43,7 @@
                     <td class="transaction-type">{{ transaction.get_transaction_type_display }}</td>
                     <td class="transaction-amount">&#8377; {{ transaction.amount }}</td>
                     <td>{{ transaction.description }}</td>
-                    <td>{{ transaction.date }}</td>
+                    <td>{{ transaction.date|date:"M d, Y" }}</td>
                 </tr>
                 {% empty %}
                 <tr>
@@ -52,6 +52,31 @@
                 {% endfor %}
             </tbody>
         </table>
+
+        <div class="pagination">
+            <ul class="pagination-list">
+                {% if transactions.has_previous %}
+                <li><a href="?page={{ transactions.previous_page_number }}">&laquo; Previous</a></li>
+                {% else %}
+                <li class="disabled"><span>&laquo; Previous</span></li>
+                {% endif %}
+        
+                {% for num in transactions.paginator.page_range %}
+                    {% if num == transactions.number %}
+                    <li class="active"><span>{{ num }}</span></li>
+                    {% else %}
+                    <li><a href="?page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+        
+                {% if transactions.has_next %}
+                <li><a href="?page={{ transactions.next_page_number }}">Next &raquo;</a></li>
+                {% else %}
+                <li class="disabled"><span>Next &raquo;</span></li>
+                {% endif %}
+            </ul>
+        </div>
+        
     </div>
 </div>
 
@@ -201,5 +226,46 @@
         color: #999;
         font-style: italic;
     }
+    .pagination {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.pagination-list {
+    list-style: none;
+    padding: 0;
+    display: inline-flex;
+    gap: 5px;
+}
+
+.pagination-list li {
+    display: inline;
+}
+
+.pagination-list a, .pagination-list span {
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.pagination-list a:hover {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.pagination-list .active span {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+}
+
+.pagination-list .disabled span {
+    color: #999;
+    border: none;
+}
+
 </style>
 {% endblock %}

@@ -5,7 +5,7 @@
 
 <style>
     form {
-        background-color: rgb(153, 191, 223);
+        background-color: rgb(206, 230, 255);
         width: 500px;
         height: auto;
         padding: 20px;
@@ -42,14 +42,6 @@
     <form method='POST'>
         {% csrf_token %}
         <h3><strong>Verify OTP</strong></h3>
-
-        {% if messages %}
-            <div class="alert">
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
 
         <div class="mb-3">
             <label class="form-label">OTP</label>

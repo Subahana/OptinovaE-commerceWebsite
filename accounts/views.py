@@ -17,6 +17,7 @@ from django.contrib.auth.hashers import make_password
 from django.conf import settings
 import logging
 from django.core.paginator import Paginator
+from allauth.socialaccount.models import SocialAccount
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -96,7 +97,8 @@ def registration_view(request):
         if form.is_valid():
             user = form.save(commit=False)
             user.is_active = True  
-            # Signal will handle OTP creation and email sending
+            user.save()  # Save the user instance before querying SocialAccount
+
             # Check if the user signed up through Google authentication
             google_account = SocialAccount.objects.filter(user=user).first()
             if google_account:
@@ -106,10 +108,7 @@ def registration_view(request):
 
                 # Optionally: You can add any custom logic you need for Google users
                 messages.success(request, 'Account created successfully via Google. You can now log in.')
-                return redirect('user_home')  # Or wherever you want to redirect the user after Google login
-
-           
-            user.save()            
+                return redirect('user_home')  # Redirect after Google login
 
             messages.success(request, 'Account created successfully! Please check your email to verify your account.')
             return redirect('accounts:otp_verify', username=user.username)
@@ -235,7 +234,6 @@ def user_login_view(request):
                 return render(request,'accounts/user_login_view.html') 
             else:
                 login(request, user)
-                messages.success(request, 'You have successfully logged in.')
                 return redirect('user_home')
         else:
             messages.error(request, "Invalid username or password.")

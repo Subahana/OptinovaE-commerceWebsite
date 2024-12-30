@@ -6,54 +6,64 @@
 <main class="main-wrap">
     <section class="content-main">
         <div class="content-header">
-            <div>
-                <h2 class="content-title card-title">Edit Variant for {{ product.name }}</h2>
-            </div>
+            <h2 class="content-title card-title">Edit Variant for <span class="text-primary">{{ product.name }}</span></h2>
+            <p class="text-muted">Update the details for this product variant below.</p>
         </div>
-        <div class="card mb-4">
+        <div class="card shadow-sm mb-4">
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
                     
-                    <!-- Display Color -->
-                    <div class="form-group">
-                        <label>Color</label>
-                        <div class="color-display" style="display: flex; align-items: center;">
-                            <span class="color-circle" style="background-color: {{ variant_color|default:'#FFFFFF' }}; width: 20px; height: 20px; border-radius: 50%; margin-right: 10px;"></span>
-                            <span>{{ variant_color }}</span>
-                            <div>
-                                <strong>Variant Color:</strong> {{ variant_color|default:"No color set" }}
+                    <!-- Color Display -->
+                    <div class="form-group mb-4">
+                        <label class="form-label font-weight-bold">Color</label>
+                        <div class="d-flex align-items-center">
+                            <div class="color-circle border" 
+                                 style="background-color: {{ variant_color|default:'#FFFFFF' }};
+                                        width: 25px; height: 25px; border-radius: 50%; margin-right: 15px;">
                             </div>
+                            <span class="badge bg-light text-dark p-2">
+                                {{ variant_color|default:"No color set" }}
+                            </span>
                         </div>
                         <input type="hidden" name="color" value="{{ variant_color }}">
                     </div>
                     
                     <!-- Price Field -->
-                    <div class="form-group">
-                        {{ variant_form.price.label_tag }}
+                    <div class="form-group mb-4">
+                        <label for="id_price" class="form-label font-weight-bold">{{ variant_form.price.label }}</label>
                         {{ variant_form.price }}
                         {% if variant_form.price.errors %}
-                            <div class="text-danger">
-                                {{ variant_form.price.errors }}
-                            </div>
+                            <small class="text-danger d-block mt-1">
+                                {{ variant_form.price.errors|join:", " }}
+                            </small>
                         {% endif %}
                     </div>
                     
                     <!-- Stock Field -->
-                    <div class="form-group">
-                        {{ variant_form.stock.label_tag }}
+                    <div class="form-group mb-4">
+                        <label for="id_stock" class="form-label font-weight-bold">{{ variant_form.stock.label }}</label>
                         {{ variant_form.stock }}
                         {% if variant_form.stock.errors %}
-                            <div class="text-danger">
-                                {{ variant_form.stock.errors }}
-                            </div>
+                            <small class="text-danger d-block mt-1">
+                                {{ variant_form.stock.errors|join:", " }}
+                            </small>
                         {% endif %}
                     </div>
                     
-                    <!-- Submit Button -->
-                    <button type="submit" class="btn btn-primary">Save Variant</button>
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="submit" name="go_to_edit_images" class="btn btn-primary px-4">
+                            Save and Edit Images
+                        </button>
+                        <button type="submit" name="go_to_product_details" class="btn btn-secondary px-4">
+                            Save and Go to Product Details
+                        </button>
+                        <button type="submit" name="cancel_edit" class="btn btn-danger px-4">
+                            Cancel Edit
+                        </button>
+                    </div>
                 </form>
-                
             </div>
         </div>
     </section>

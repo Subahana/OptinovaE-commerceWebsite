@@ -9,6 +9,7 @@ import json
 from decimal import Decimal
 from offer_management.models import CategoryOffer
 from django.views.decorators.cache import never_cache
+from django.utils import timezone
 
 # --------------Cart Management---------------#
 
@@ -60,6 +61,7 @@ def cart_detail(request):
     try:
         cart, created = Cart.objects.get_or_create(user=request.user)
         cart_items = CartItem.objects.filter(cart=cart)
+        available_coupons = Coupon.objects.filter(active=True, valid_to__gte=timezone.now())
 
         if not request.GET.get('apply_coupon'):
             cart.coupon = None
@@ -124,6 +126,7 @@ def cart_detail(request):
             'variants_not_in_cart': variants_not_in_cart,
             'total_items': total_items,
             'csrf_token': get_token(request),
+            'available_coupons': available_coupons,
             'coupon_code': cart.coupon.code if cart.coupon else None
         }
 

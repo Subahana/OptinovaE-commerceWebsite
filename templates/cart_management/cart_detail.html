@@ -95,24 +95,30 @@
                 <div class="row mt-4">
                     <div class="col-lg-6 col-md-6 col-sm-6">
                         <div class="continue__btn">
-                            <a href="{% url 'shop' %}">Continue Shopping</a>
+                            <a href="{% url 'shop' %}"><i class="fa fa-shopping-bag"></i> Continue Shopping</a>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="col-lg-4">
-                <div class="cart__discount">
-                    <h6>Apply Coupon</h6>
-                    <form id="coupon-form" method="post" action="{% url 'apply_coupon' %}">
+                <div class="cart__discount enhanced-coupon-section">
+                    <h6 class="coupon-header">Select a Coupon</h6>
+                    <form id="coupon-form" method="post">
                         {% csrf_token %}
-                        <input type="hidden" name="csrfmiddlewaretoken1" value="{{ csrf_token }}">
-                        <input type="text" id="coupon_code" name="coupon_code" placeholder="Enter coupon code">
-                        <button type="button" id="apply-coupon-btn" style="background:#003366;">Apply Coupon</button>
+                        <div class="form-group">
+                            <select id="coupon-select" name="coupon_code" class="form-control stylish-select">
+                                <option value="" disabled selected>Select a coupon</option>
+                                {% for coupon in available_coupons %}
+                                <option value="{{ coupon.code }}">{{ coupon.code }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="button" id="apply-coupon-btn" class="btn btn-apply-coupon">Apply Coupon</button>
                     </form>
                 </div>
                 
-
+            
                 <div class="cart__total">
                     <h6>Cart Total</h6>
                     <ul>
@@ -123,25 +129,23 @@
                         <li>Coupon Discount <span class="cart-coupon-discount">₹{{ coupon_discount_amount }}</span></li>
                         <li>Amount to Pay <span class="cart-final-price">₹{{ final_total }}</span></li>
                     </ul>
-                    <a href="{% url 'checkout' %}" class="primary-btn">Proceed to Checkout</a>
+                    <a href="{% url 'checkout' %}" class="primary-btn"><i class="fa fa-check"></i> Proceed to Checkout</a>
                 </div>
             </div>
+            
 
             {% else %}
             <div class="col-lg-12 text-center">
                 <h3>Your shopping cart is empty!</h3>
                 <p>It looks like you haven’t added anything to your cart yet. Start shopping now!</p>
                 <div class="continue__btn mt-4">
-                    <a href="{% url 'shop' %}" class="primary-btn">Start Shopping</a>
+                    <a href="{% url 'shop' %}" class="primary-btn"><i class="fa fa-shopping-bag"></i>Start Shopping</a>
                 </div>
             </div>
             {% endif %}
         </div>
     </div>
 </section>
-<script>
-
-</script>
 <!-- <script>
     var csrfToken = '{{ csrf_token }}';
 </script> -->
@@ -230,85 +234,90 @@
         });
 
         function applyCoupon(couponCode) {
-            console.log(couponCode,"coupon");
-            
-    const applyCouponUrl = "{% url 'apply_coupon' %}";
-            console.log(csrfToken,'csrf');
-            
-    axios.post(applyCouponUrl, 
-        { coupon_code: couponCode },  // This is the body of the POST request
-        { 
-            headers: {
-                'X-CSRFToken': csrfToken  // Ensure this token is correct
-            }
+            console.log(couponCode,"coupon");        
+            const applyCouponUrl = "{% url 'apply_coupon' %}";
+                    console.log(csrfToken,'csrf');
+                    
+            axios.post(applyCouponUrl,{ coupon_code: couponCode },  // This is the body of the POST request
+                { 
+                    headers: {
+                        'X-CSRFToken': csrfToken  // Ensure this token is correct
+                    }
+                }
+            )
+            .then(response => {
+                if (response.data.success) {
+                    swal.fire("Success!", "Coupon applied successfully!", "success");
+                    updateCartTotals(response.data);  // Assuming you have a function to update cart totals
+                    appliedCouponCode = couponCode; // Save the applied coupon code
+                    changeButtonStyle(true); // Update button to "Remove Coupon"
+                } else {
+                    console.log("hgghgghfgh",response.data);
+                    
+                    swal.fire("Error!", response.data.error || "Invalid coupon.", "error");
+                }
+            })
+            .catch(error => {    
+                var err= error.response?.data.error;
+                swal.fire("Error!",err,"error");
+            });
         }
-    )
-    .then(response => {
-        if (response.data.success) {
-            swal.fire("Success!", "Coupon applied successfully!", "success");
-            updateCartTotals(response.data);  // Assuming you have a function to update cart totals
-        } else {
-            console.log("hgghgghfgh",response.data);
-            
-            swal.fire("Error!", response.data.error || "Invalid coupon.", "error");
+        function removeCoupon() {
+    swal.fire({
+        title: "Are you sure?",
+        text: "Do you really want to remove the coupon?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#0056b3",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, remove it!",
+        cancelButtonText: "No, keep it!"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            axiosInstance.post("{% url 'remove_coupon' %}")
+                .then(response => {
+                    if (response.data.success) {
+                        updateCartTotals(response.data); // Update cart totals
+                        appliedCouponCode = ''; // Clear the applied coupon code
+                        changeButtonStyle(false); // Update button to "Apply Coupon"
+                        swal.fire("Success!", "Coupon removed successfully!", "success");
+                    } else {
+                        swal.fire("Error!", response.data.error || "Failed to remove the coupon.", "error");
+                    }
+                })
+                .catch(error => {
+                    swal.fire("Error!", "There was a problem removing the coupon.", "error");
+                });
         }
-    })
-    .catch(error => {    
-        var err= error.response?.data.error;
-        swal.fire("Error!",err,"error");
     });
 }
 
 
-
-        function removeCoupon() {
-            swal.fire({
-                title: "Are you sure?",
-                text: "Do you really want to remove the coupon?",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#0056b3",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Yes, remove it!",
-                cancelButtonText: "No, keep it!"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    axiosInstance.post("{% url 'remove_coupon' %}")
-                        .then(response => {
-                            if (response.data.success) {
-                                updateCartTotals(response.data);
-                                appliedCouponCode = '';
-                                changeButtonStyle(false);
-                                
-                                swal.fire("Success!", "Coupon removed successfully!", "success");
-                            } else {
-                                swal.fire("Error!", response.data.error || "Failed to remove the coupon.", "error");
-                            }
-                        })
-                        .catch(error => {
-                            swal.fire("Error!", "There was a problem removing the coupon.", "error");
-                        });
-                }
-            });
-        }
-
-        function changeButtonStyle(isRemoving) {
-            const button = document.getElementById('apply-coupon-btn');
-            button.textContent = isRemoving ? "Remove Coupon" : "Apply Coupon";
-            button.className = isRemoving ? 'btn btn-danger' : 'btn btn-primary';
-        }
+    function changeButtonStyle(isRemoving) {
+        const button = document.getElementById('apply-coupon-btn');
+        if (isRemoving) {
+        button.textContent = "Remove Coupon"; // Update button text
+        button.classList.remove('btn-primary'); // Remove the "Apply Coupon" style
+        button.classList.add('btn-danger'); // Add the "Remove Coupon" style
+    } else {
+        button.textContent = "Apply Coupon"; // Update button text
+        button.classList.remove('btn-danger'); // Remove the "Remove Coupon" style
+        button.classList.add('btn-primary'); // Add the "Apply Coupon" style
+    }    }
 
         document.getElementById('apply-coupon-btn').addEventListener('click', function () {
-            const couponCode = document.querySelector('input[name="coupon_code"]').value.trim();
-            if (appliedCouponCode) {
-                removeCoupon();
-            } else if (couponCode) {
-                applyCoupon(couponCode);
-            } else {
-                swal.fire("Warning!", "Please enter a valid coupon code.", "warning");
-            }
-        });
+        const couponSelect = document.getElementById('coupon-select');
+        const selectedCoupon = couponSelect.value;
+
+        if (appliedCouponCode) {
+            removeCoupon();
+        } else if (selectedCoupon) {
+            applyCoupon(selectedCoupon);
+        } else {
+            swal.fire("Warning!", "Please select a coupon.", "warning");
+        }
     });
+});
 </script>
 
 <style>
@@ -399,6 +408,10 @@
         font-size: 18px;
         cursor: pointer;
     }
+    .cart__total {
+    position: sticky;
+    top: 20px;
+}
 
     /* Quantity Input */
     .pro-qty-2 input {
@@ -539,6 +552,17 @@
         /* Space between input and buttons */
         border: 1px solid #ccc;
     }
+    .btn-danger {
+    background-color: #d9534f;
+    border-color: #d43f3a;
+}
+
+.btn-primary {
+    background-color: #0275d8;
+    border-color: #025aa5;
+}
+
+
 </style>
 
 {% endblock %}

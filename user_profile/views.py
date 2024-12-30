@@ -131,7 +131,7 @@ def my_orders(request):
     orders = Order.objects.filter(
         user=request.user,
         items__variant__is_active=True  # Filter orders that contain active variants
-    ).distinct().order_by('id')
+    ).distinct().order_by('-id')
 
     # Calculate total price and total quantity for each order
     for order in orders:

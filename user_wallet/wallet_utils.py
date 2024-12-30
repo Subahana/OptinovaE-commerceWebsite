@@ -54,7 +54,7 @@ def process_refund_to_wallet(order):
     print(f"Raw Payment Status: '{payment_status}'")
     
     # Check if the order has been paid successfully and is not already refunded
-    if payment_status != 'Completed':
+    if payment_status.lower() != 'completed':
         raise Exception("Refund can only be processed for paid orders.")
     
     # Ensure the order has not already been refunded

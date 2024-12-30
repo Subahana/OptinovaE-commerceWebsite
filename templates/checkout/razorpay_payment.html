@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <meta name="csrf-token" content="{{ csrf_token }}">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         body {
@@ -139,19 +140,36 @@
         payment_id: response.error.metadata.payment_id,
     };
 
+    // Log failure details (optional)
+    console.log("Failure details:", failureDetails);
+
+    // Send failure details to the server (optional)
     axios.post('/order_management/verify_razorpay_payment/' + OrderId + '/', failureDetails, {
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': csrfToken
         }
     }).then((res) => {
-        console.log("Failure handled:", res.data);
-        window.location.href = `/order_management/handle_payment_failure/${order_id}`;
+        console.log("Failure logged on server:", res.data);
     }).catch((err) => {
-        console.error("Error handling failure:", err);
-        alert("Failed to process payment failure. Please contact support.");
+        console.error("Error logging failure on server:", err);
+    });
+
+    // Display SweetAlert failure notification
+    Swal.fire({
+        icon: 'error',
+        title: 'Payment Failed',
+        text: 'Payment was not successful. Please retry your payment.',
+        confirmButtonText: 'Retry Payment',
+        confirmButtonColor: '#0099ff',
+        footer: '<a href="/contact-support">Need help? Contact Support</a>'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            rzp1.open(); // Retry payment on button click
+        }
     });
 });
+
 
     </script>
 </body>

@@ -18,13 +18,12 @@ from django.shortcuts import render, get_object_or_404, redirect
 
 logger = logging.getLogger(__name__)
 
-        #   category_listt   
+        #--------category------------#   
 @login_required(login_url='accounts:admin_login')  
 def category_list(request):
     categories = Category.objects.all()
     return render(request, 'products/category_list.html', {'categories': categories})
 
-        #    add_category
 @login_required(login_url='accounts:admin_login')  
 def add_category(request):
     if request.method == "POST":
@@ -37,7 +36,6 @@ def add_category(request):
         form = CategoryForm()   
     return render(request, 'products/category_add_form.html', {'form': form})
 
-          #   edit_category      
 @login_required(login_url='accounts:admin_login')  
 def edit_category(request, id):
     category = get_object_or_404(Category, id=id)
@@ -51,7 +49,6 @@ def edit_category(request, id):
         form = CategoryForm(instance=category)
     return render(request, 'products/category_edit_form.html', {'form': form})
 
-         #    activate_category
 @login_required(login_url='accounts:admin_login')  
 def activate_category(request, id):
     category = get_object_or_404(Category, id=id)
@@ -61,7 +58,6 @@ def activate_category(request, id):
         messages.success(request, 'Category activated successfully.')
     return redirect('category_list')
 
-        #  permanent_delete_category
 @login_required(login_url='accounts:admin_login')  
 def permanent_delete_category(request, id):
     category = get_object_or_404(Category, id=id)
@@ -70,7 +66,6 @@ def permanent_delete_category(request, id):
         messages.success(request, 'Category deleted permanently.')
     return redirect('category_list')
 
-        #   Deactivating Category
 @login_required(login_url='accounts:admin_login')  
 def soft_delete_category(request, id):
     category = get_object_or_404(Category, id=id)
@@ -79,6 +74,8 @@ def soft_delete_category(request, id):
         category.save()
         messages.success(request, 'Category deactivated successfully.')
     return redirect('category_list')
+
+#-----------Product-------------#
 
 @login_required(login_url='accounts:admin_login')  
 def product_list(request):
@@ -194,6 +191,10 @@ def edit_variant(request, variant_id):
     product = variant.product
 
     if request.method == 'POST':
+        if 'cancel_edit' in request.POST:
+            messages.info(request, 'Edit canceled. No changes were made.')
+            return redirect('product_detail', product_id=product.id, variant_id=variant.id)
+
         variant_form = ProductVariantForm(request.POST, instance=variant, product=product)
         
         # Get the color from the hidden input (if you're passing it like we discussed)
@@ -210,7 +211,11 @@ def edit_variant(request, variant_id):
 
             updated_variant.save()
             messages.success(request, 'Variant updated successfully.')
-            return redirect('edit_images', variant_id=variant.id)
+
+            if 'go_to_edit_images' in request.POST:
+                return redirect('edit_images', variant_id=variant.id)
+            elif 'go_to_product_details' in request.POST:
+                return redirect('product_detail', product_id=product.id, variant_id=variant.id)
         else:
             messages.error(request, 'There was an error updating the variant. Please check the form.')
     else:
@@ -286,7 +291,6 @@ def edit_images(request, variant_id):
         'max_images': max_images,
     }
     return render(request, 'products/edit_images.html', context)
-
 
 
 def set_main_variant(request, variant_id):
